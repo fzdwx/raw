@@ -3,6 +3,8 @@ use std::io::Error;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use crossterm::style::Stylize;
 
+use crate::document::Document;
+use crate::row::Row;
 use crate::terminal::{Position, Size, Terminal};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -10,8 +12,12 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct Editor {
     // quit flag
     should_quit: bool,
+    // terminal
     terminal: Terminal,
+    // curr cursor position
     cursor_position: Position,
+    // curr edit document
+    document: Document,
 }
 
 impl Editor {
@@ -20,7 +26,8 @@ impl Editor {
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("Failed to initialize terminal"),
-            cursor_position: Position::origin(),
+            cursor_position: Position::default(),
+            document: Document::open(),
         }
     }
 
@@ -110,8 +117,8 @@ impl Editor {
         let Position { mut x, mut y } = self.cursor_position;
 
         let size = self.terminal.size();
-        let h = size.height.saturating_sub(1);
-        let w = size.width.saturating_sub(1);
+        let h = size.height.saturating_sub(1) as usize;
+        let w = size.width.saturating_sub(1) as usize;
         match key {
             KeyCode::Up => y = y.saturating_sub(1),
             KeyCode::Down => {
@@ -151,13 +158,23 @@ impl Editor {
         self.should_quit
     }
 
+    pub fn draw_row(&self, row: &Row) {
+        let start = 0;
+        let end = self.terminal.size().width as usize;
+        let row = row.render(start, end);
+        println!("{}\r", row);
+    }
+
+    /// write screen
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
         let x = height / 3;
-        for row in 0..height - 1 {
+        for terminal_row in 0..height - 1 {
             Terminal::clear_screen_current_line();
 
-            if row == x {
+            if let Some(row) = self.document.row(terminal_row as usize) {
+                self.draw_row(row)
+            } else if self.document.is_empty() && terminal_row == x {
                 self.draw_welcome_message();
             } else {
                 println!("~\r");

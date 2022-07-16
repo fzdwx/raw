@@ -18,15 +18,10 @@ pub struct Terminal {
 }
 
 /// the cursor position
+#[derive(Default)]
 pub struct Position {
-    pub(crate) x: u16,
-    pub(crate) y: u16,
-}
-
-impl Position {
-    pub fn origin() -> Position {
-        ORIGIN
-    }
+    pub(crate) x: usize,
+    pub(crate) y: usize,
 }
 
 impl Terminal {
@@ -37,7 +32,7 @@ impl Terminal {
             Ok(_) => Ok(Self {
                 size: Size {
                     width: size.0,
-                    height: size.1,
+                    height: size.1.saturating_sub(2),
                 },
             }),
 
@@ -86,7 +81,9 @@ impl Terminal {
 
     /// moves the terminal cursor to the given position (column, row).
     pub fn move_to(p: &Position) {
-        stdout().queue(crossterm::cursor::MoveTo(p.x, p.y)).ok();
+        stdout()
+            .queue(crossterm::cursor::MoveTo(p.x as u16, p.y as u16))
+            .ok();
     }
 
     /// moves the terminal cursor to the origin.
