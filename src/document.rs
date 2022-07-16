@@ -9,6 +9,7 @@ use crate::terminal::Position;
 pub struct Document {
     rows: Vec<Row>,
     pub filename: Option<String>,
+    dirty: bool,
 }
 
 impl Document {
@@ -24,24 +25,29 @@ impl Document {
         Ok(Self {
             rows,
             filename: Some(filename.to_string()),
+            dirty: false,
         })
     }
 
     pub fn of(filename: &str) -> Document {
         Self {
-            rows: vec![],
+            rows: Vec::new(),
             filename: Some(filename.to_string()),
+            dirty: false,
         }
     }
 
     /// save file to disk
-    pub fn save(&self) -> Result<(), Error> {
+    pub fn save(&mut self) -> Result<(), Error> {
         if let Some(filename) = &self.filename {
             let mut file = fs::File::create(filename)?;
             for row in &self.rows {
                 file.write_all(row.as_bytes())?;
                 file.write_all(b"\n")?;
             }
+
+            // reset dirty
+            self.dirty = false;
         }
 
         Ok(())
@@ -49,6 +55,11 @@ impl Document {
 
     /// insert char to position
     pub fn insert(&mut self, at: &Position, c: char) {
+        if at.y > self.len() {
+            return;
+        }
+        self.dirty = true;
+
         if c == '\n' {
             self.insert_new_line(at);
             return;
@@ -58,7 +69,7 @@ impl Document {
             let mut row = Row::default();
             row.insert(0, c);
             self.rows.push(row);
-        } else if at.y < self.len() {
+        } else {
             let row = self.rows.get_mut(at.y).unwrap();
             row.insert(at.x, c);
         }
@@ -70,6 +81,8 @@ impl Document {
         if at.y >= len {
             return;
         };
+
+        self.dirty = true;
 
         if at.x == self.rows.get_mut(at.y).unwrap().len() && at.y < len - 1 {
             let next_row = self.rows.remove(at.y + 1);
@@ -84,6 +97,10 @@ impl Document {
     /// get row by index
     pub fn row(&self, index: usize) -> Option<&Row> {
         self.rows.get(index)
+    }
+
+    pub fn is_dirty(&self) -> bool {
+        self.dirty
     }
 
     /// the document is empty?
