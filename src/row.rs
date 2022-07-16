@@ -7,6 +7,7 @@ pub struct Row {
 }
 
 impl Row {
+    /// insert char at target index
     pub fn insert(&mut self, at: usize, c: char) {
         if at >= self.len {
             self.source.push(c);
@@ -17,6 +18,19 @@ impl Row {
             result.push_str(&remainder);
             self.source = result
         }
+
+        self.update_len();
+    }
+
+    /// delete char from target index
+    pub fn delete(&mut self, at: usize) {
+        if at >= self.len {
+            return;
+        };
+        let mut result: String = self.source[..].graphemes(true).take(at).collect();
+        let remainder: String = self.source[..].graphemes(true).take(at + 1).collect();
+        result.push_str(&remainder);
+        self.source = result;
 
         self.update_len();
     }

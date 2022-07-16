@@ -137,9 +137,19 @@ impl Editor {
                 self.should_quit = true
             }
 
-            (KeyCode::Char(mut c), _) => {
+            // add char
+            (KeyCode::Char(c), _) => {
                 self.document.insert(&self.cursor_position, c);
                 self.move_cursor(KeyCode::Right);
+            }
+
+            // delete
+            (KeyCode::Delete, _) => self.document.delete(&self.cursor_position),
+            (KeyCode::Backspace, _) => {
+                if self.cursor_position.x > 0 || self.cursor_position.y > 0 {
+                    self.move_cursor(KeyCode::Left);
+                    self.document.delete(&self.cursor_position);
+                }
             }
 
             (KeyCode::Up, _)

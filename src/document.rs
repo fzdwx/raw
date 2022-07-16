@@ -26,6 +26,7 @@ impl Document {
         })
     }
 
+    /// insert char to position
     pub fn insert(&mut self, at: &Position, c: char) {
         if at.y == self.len() {
             let mut row = Row::default();
@@ -35,6 +36,14 @@ impl Document {
             let row = self.rows.get_mut(at.y).unwrap();
             row.insert(at.x, c);
         }
+    }
+
+    pub fn delete(&mut self, at: &Position) {
+        if at.y >= self.len() {
+            return;
+        };
+        let row = self.rows.get_mut(at.y).unwrap();
+        row.delete(at.x)
     }
 
     /// get row by index
