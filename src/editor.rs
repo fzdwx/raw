@@ -245,7 +245,7 @@ impl Editor {
         }
 
         // fix 可以多下一行
-        if y == h {
+        if y == h && h != 0 {
             y = y - 1
         }
 
