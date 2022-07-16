@@ -11,9 +11,9 @@ impl Row {
 }
 
 impl From<&str> for Row {
-    fn from(s: &str) -> Self {
+    fn from(line: &str) -> Self {
         Self {
-            string: String::from(s),
+            string: String::from(line),
         }
     }
 }

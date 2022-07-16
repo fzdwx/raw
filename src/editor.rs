@@ -1,3 +1,4 @@
+use std::env::args;
 use std::io::Error;
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
@@ -23,11 +24,20 @@ pub struct Editor {
 impl Editor {
     /// create default Editor
     pub fn default() -> Editor {
+        let args: Vec<String> = args().collect();
+
+        let document = if args.len() > 1 {
+            let filename = &args[1];
+            Document::open(filename).unwrap_or_default()
+        } else {
+            Document::default()
+        };
+
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("Failed to initialize terminal"),
             cursor_position: Position::default(),
-            document: Document::open(),
+            document,
         }
     }
 
@@ -158,6 +168,7 @@ impl Editor {
         self.should_quit
     }
 
+    /// draw row to terminal
     pub fn draw_row(&self, row: &Row) {
         let start = 0;
         let end = self.terminal.size().width as usize;
@@ -165,7 +176,7 @@ impl Editor {
         println!("{}\r", row);
     }
 
-    /// write screen
+    /// draw document to terminal
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
         let x = height / 3;

@@ -1,3 +1,5 @@
+use std::fs;
+
 use crate::row::Row;
 
 /// the document
@@ -8,12 +10,15 @@ pub struct Document {
 
 impl Document {
     /// open document.
-    pub fn open() -> Self {
+    pub fn open(filename: &str) -> Result<Document, std::io::Error> {
+        let contents = fs::read_to_string(filename)?;
+
         let mut rows = Vec::new();
-        rows.push(Row::from("hello world"));
-        rows.push(Row::from("hello world"));
-        rows.push(Row::from("hello world"));
-        Self { rows }
+        for line in contents.lines() {
+            rows.push(Row::from(line));
+        }
+
+        Ok(Self { rows })
     }
 
     /// get row by index
