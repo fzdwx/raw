@@ -137,6 +137,11 @@ impl Editor {
                 self.should_quit = true
             }
 
+            (KeyCode::Char(mut c), _) => {
+                self.document.insert(&self.cursor_position, c);
+                self.move_cursor(KeyCode::Right);
+            }
+
             (KeyCode::Up, _)
             | (KeyCode::Down, _)
             | (KeyCode::Left, _)
