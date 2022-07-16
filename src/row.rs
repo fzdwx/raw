@@ -35,6 +35,12 @@ impl Row {
         self.update_len();
     }
 
+    /// concat row
+    pub fn concat(&mut self, other: &Row) {
+        self.source = format!("{}{}", self.source, other.source);
+        self.update_len();
+    }
+
     /// refresh row length
     pub fn update_len(&mut self) {
         self.len = self.source[..].graphemes(true).count()
