@@ -41,7 +41,7 @@ impl Editor {
     /// create default Editor
     pub fn default() -> Editor {
         let args: Vec<String> = args().collect();
-        let mut initial_status = String::from("HELP: Ctrl-Q = quit");
+        let mut initial_status = String::from("HELP: Ctrl-S = save | Ctrl-Q = quit");
 
         let document = if args.len() > 1 {
             let filename = &args[1];
@@ -137,6 +137,8 @@ impl Editor {
                 self.should_quit = true
             }
 
+            (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.save(),
+
             // add char
             (KeyCode::Char(c), _) => {
                 self.document.insert(&self.cursor_position, c);
@@ -150,6 +152,12 @@ impl Editor {
                     self.move_cursor(KeyCode::Left);
                     self.document.delete(&self.cursor_position);
                 }
+            }
+
+            // new line
+            (KeyCode::Enter, _) => {
+                self.document.insert(&self.cursor_position, '\n');
+                self.move_cursor(KeyCode::Right);
             }
 
             (KeyCode::Up, _)
@@ -166,6 +174,28 @@ impl Editor {
         };
 
         self.scroll();
+    }
+
+    /// save document
+    fn save(&mut self) {
+        if self.document.filename.is_none() {
+            let new_name = self.prompt("Save as: ").unwrap_or(None);
+            if new_name.is_none() {
+                self.status_message = StatusMessage::from("Save aborted.".to_string());
+                return;
+            }
+            self.document.filename = new_name;
+        }
+
+        match self.document.save() {
+            Ok(_) => {
+                self.status_message = StatusMessage::from("File saved successfully".to_string());
+            }
+            Err(err) => {
+                self.status_message =
+                    StatusMessage::from(format!("Error writing file, cause: {}", err));
+            }
+        }
     }
 
     /// scroll
@@ -369,6 +399,37 @@ impl Editor {
                 self.terminal.size()
             )
         );
+    }
+
+    fn prompt(&mut self, prompt: &str) -> Result<Option<String>, Error> {
+        let mut result = String::new();
+        loop {
+            self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
+            self.refresh_screen()?;
+            let event = Terminal::read_event().unwrap();
+
+            if let Event::Key(key) = event {
+                match key.code {
+                    KeyCode::Backspace => result.truncate(result.len().saturating_sub(1)),
+                    KeyCode::Enter => break,
+                    KeyCode::Char(c) => {
+                        if !c.is_control() {
+                            result.push(c);
+                        }
+                    }
+                    KeyCode::Esc => {
+                        result.truncate(0);
+                        break;
+                    }
+                    _ => (),
+                }
+            }
+        }
+        self.status_message = StatusMessage::from(String::new());
+        if result.is_empty() {
+            return Ok(None);
+        }
+        Ok(Some(result))
     }
 }
 

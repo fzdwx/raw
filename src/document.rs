@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::{Error, Write};
 
 use crate::row::Row;
 use crate::terminal::Position;
@@ -24,6 +25,19 @@ impl Document {
             rows,
             filename: Some(filename.to_string()),
         })
+    }
+
+    /// save file to disk
+    pub fn save(&self) -> Result<(), Error> {
+        if let Some(filename) = &self.filename {
+            let mut file = fs::File::create(filename)?;
+            for row in &self.rows {
+                file.write_all(row.as_bytes())?;
+                file.write_all(b"\n")?;
+            }
+        }
+
+        Ok(())
     }
 
     /// insert char to position

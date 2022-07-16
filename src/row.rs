@@ -51,6 +51,11 @@ impl Row {
         Self::from(&remainder[..])
     }
 
+    /// to bytes
+    pub fn as_bytes(&self) -> &[u8] {
+        self.source.as_bytes()
+    }
+
     /// refresh row length
     pub fn update_len(&mut self) {
         self.len = self.source[..].graphemes(true).count()
