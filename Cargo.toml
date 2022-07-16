@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies.crossterm]
 version = "0.23"
 features = ["event-stream"]
+
+[dependencies.unicode-segmentation]
+version = "1.9.0"

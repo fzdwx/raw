@@ -1,8 +1,9 @@
 use std::io::{stdout, Error, Write};
 
 use crossterm::event::Event;
+use crossterm::style::Color;
 use crossterm::terminal::{Clear, ClearType};
-use crossterm::{ErrorKind, QueueableCommand};
+use crossterm::{style, ErrorKind, QueueableCommand};
 
 const ORIGIN: Position = Position { x: 0, y: 0 };
 
@@ -38,6 +39,26 @@ impl Terminal {
 
             Err(err) => Err(err),
         }
+    }
+
+    /// set terminal background color
+    pub fn set_bg_color(color: Color) {
+        stdout().queue(style::SetBackgroundColor(color)).ok();
+    }
+
+    /// reset terminal foreground color
+    pub fn reset_bg_color() {
+        Terminal::set_bg_color(Color::Reset)
+    }
+
+    /// set terminal foreground color
+    pub fn set_fg_color(color: Color) {
+        stdout().queue(style::SetForegroundColor(color)).ok();
+    }
+
+    /// reset terminal background color
+    pub fn reset_fg_color() {
+        Terminal::set_fg_color(Color::Reset)
     }
 
     pub fn disable_raw_mode() {

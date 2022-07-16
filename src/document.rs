@@ -6,6 +6,7 @@ use crate::row::Row;
 #[derive(Default)]
 pub struct Document {
     rows: Vec<Row>,
+    pub filename: Option<String>,
 }
 
 impl Document {
@@ -18,7 +19,10 @@ impl Document {
             rows.push(Row::from(line));
         }
 
-        Ok(Self { rows })
+        Ok(Self {
+            rows,
+            filename: Some(filename.to_string()),
+        })
     }
 
     /// get row by index
@@ -29,5 +33,10 @@ impl Document {
     /// the document is empty?
     pub fn is_empty(&self) -> bool {
         self.rows.is_empty()
+    }
+
+    /// the document rows length.
+    pub fn len(&self) -> usize {
+        self.rows.len()
     }
 }
