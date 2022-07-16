@@ -83,7 +83,6 @@ impl Document {
         };
 
         self.dirty = true;
-
         if at.x == self.rows.get_mut(at.y).unwrap().len() && at.y < len - 1 {
             let next_row = self.rows.remove(at.y + 1);
             let row = self.rows.get_mut(at.y).unwrap();

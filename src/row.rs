@@ -24,31 +24,49 @@ impl Row {
 
     /// delete char from target index
     pub fn delete(&mut self, at: usize) {
-        if at >= self.len {
+        if at >= self.len() {
             return;
         };
-        let mut result: String = self.source[..].graphemes(true).take(at).collect();
-        let remainder: String = self.source[..].graphemes(true).take(at + 1).collect();
-        result.push_str(&remainder);
+        let mut result: String = String::new();
+        let mut length = 0;
+        for (index, grapheme) in self.source[..].graphemes(true).enumerate() {
+            if index != at {
+                length += 1;
+                result.push_str(grapheme);
+            }
+        }
+        self.len = length;
         self.source = result;
-
-        self.update_len();
     }
 
     /// concat row
     pub fn concat(&mut self, other: &Row) {
         self.source = format!("{}{}", self.source, other.source);
-        self.update_len();
+        self.len += other.len;
     }
 
     /// split current row
     pub fn split(&mut self, at: usize) -> Row {
-        let beginning: String = self.source[..].graphemes(true).take(at).collect();
-        let remainder: String = self.source[..].graphemes(true).skip(at).collect();
-        self.source = beginning;
-        self.update_len();
+        let mut row: String = String::new();
+        let mut length = 0;
+        let mut splitted_row: String = String::new();
+        let mut splitted_length = 0;
+        for (index, grapheme) in self.source[..].graphemes(true).enumerate() {
+            if index < at {
+                length += 1;
+                row.push_str(grapheme);
+            } else {
+                splitted_length += 1;
+                splitted_row.push_str(grapheme);
+            }
+        }
 
-        Self::from(&remainder[..])
+        self.source = row;
+        self.len = length;
+        Self {
+            source: splitted_row,
+            len: splitted_length,
+        }
     }
 
     /// to bytes
