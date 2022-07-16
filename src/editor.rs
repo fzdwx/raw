@@ -160,6 +160,7 @@ impl Editor {
                 self.move_cursor(KeyCode::Right);
             }
 
+            // move cursor
             (KeyCode::Up, _)
             | (KeyCode::Down, _)
             | (KeyCode::Left, _)

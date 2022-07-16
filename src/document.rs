@@ -59,7 +59,6 @@ impl Document {
             return;
         }
         self.dirty = true;
-
         if c == '\n' {
             self.insert_new_line(at);
             return;

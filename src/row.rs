@@ -11,15 +11,21 @@ impl Row {
     pub fn insert(&mut self, at: usize, c: char) {
         if at >= self.len {
             self.source.push(c);
-        } else {
-            let mut result: String = self.source[..].graphemes(true).take(at).collect();
-            let remainder: String = self.source[..].graphemes(true).take(at).collect();
-            result.push(c);
-            result.push_str(&remainder);
-            self.source = result
+            self.len += 1;
+            return;
         }
-
-        self.update_len();
+        let mut result: String = String::new();
+        let mut length = 0;
+        for (index, grapheme) in self.source[..].graphemes(true).enumerate() {
+            length += 1;
+            if index == at {
+                length += 1;
+                result.push(c);
+            }
+            result.push_str(grapheme);
+        }
+        self.len = length;
+        self.source = result;
     }
 
     /// delete char from target index
