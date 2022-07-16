@@ -1,9 +1,10 @@
-use std::io::{Error, stdout, Write};
-use crossterm::{ErrorKind, QueueableCommand};
+use std::io::{stdout, Error, Write};
+
 use crossterm::event::Event;
 use crossterm::terminal::{Clear, ClearType};
+use crossterm::{ErrorKind, QueueableCommand};
 
-const Origin: &Position = &Position::origin();
+const ORIGIN: Position = Position { x: 0, y: 0 };
 
 /// the terminal size
 pub struct Size {
@@ -18,16 +19,13 @@ pub struct Terminal {
 
 /// the cursor position
 pub struct Position {
-    x: u16,
-    y: u16,
+    pub(crate) x: u16,
+    pub(crate) y: u16,
 }
 
 impl Position {
     pub fn origin() -> Position {
-        Self {
-            x: 0,
-            y: 0,
-        }
+        ORIGIN
     }
 }
 
@@ -36,18 +34,14 @@ impl Terminal {
         let size = crossterm::terminal::size().unwrap();
 
         match crossterm::terminal::enable_raw_mode() {
-            Ok(_) => {
-                Ok(Self {
-                    size: Size {
-                        width: size.0,
-                        height: size.1,
-                    }
-                })
-            }
+            Ok(_) => Ok(Self {
+                size: Size {
+                    width: size.0,
+                    height: size.1,
+                },
+            }),
 
-            Err(err) => {
-                Err(err)
-            }
+            Err(err) => Err(err),
         }
     }
 
@@ -97,7 +91,7 @@ impl Terminal {
 
     /// moves the terminal cursor to the origin.
     pub fn move_to_origin() {
-        Terminal::move_to(Origin)
+        Terminal::move_to(&ORIGIN)
     }
 
     pub fn size(&self) -> &Size {

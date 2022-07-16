@@ -1,6 +1,9 @@
 use std::io::Error;
+
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
-use crate::terminal::{Terminal, Position};
+use crossterm::style::Stylize;
+
+use crate::terminal::{Position, Size, Terminal};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -23,7 +26,6 @@ impl Editor {
 
     /// run editor
     pub fn run(&mut self) {
-
         // loop
         loop {
             if let Err(error) = self.refresh_screen() {
@@ -62,9 +64,7 @@ impl Editor {
         return match Terminal::read_event() {
             Ok(event) => {
                 match event {
-                    Event::Key(input_key) => {
-                        self.process_keypress(input_key)
-                    }
+                    Event::Key(input_key) => self.process_keypress(input_key),
 
                     Event::Mouse(_) => {
                         println!("{:?}", event);
@@ -78,9 +78,7 @@ impl Editor {
                 Ok(())
             }
 
-            Err(err) => {
-                Err(err)
-            }
+            Err(err) => Err(err),
         };
     }
 
@@ -91,11 +89,50 @@ impl Editor {
                 self.should_quit = true
             }
 
+            (KeyCode::Up, _)
+            | (KeyCode::Down, _)
+            | (KeyCode::Left, _)
+            | (KeyCode::Right, _)
+            | (KeyCode::PageUp, _)
+            | (KeyCode::PageDown, _)
+            | (KeyCode::End, _)
+            | (KeyCode::Home, _) => self.move_cursor(key.code),
+
             // handle other event
             _ => {
                 println!("{:?}", key);
             }
         };
+    }
+
+    /// move cursor by key code
+    fn move_cursor(&mut self, key: KeyCode) {
+        let Position { mut x, mut y } = self.cursor_position;
+
+        let size = self.terminal.size();
+        let h = size.height.saturating_sub(1);
+        let w = size.width.saturating_sub(1);
+        match key {
+            KeyCode::Up => y = y.saturating_sub(1),
+            KeyCode::Down => {
+                if y < h {
+                    y = y.saturating_add(1)
+                }
+            }
+            KeyCode::Left => x = x.saturating_sub(1),
+            KeyCode::Right => {
+                if x < w {
+                    x = x.saturating_add(1)
+                }
+            }
+            KeyCode::PageUp => y = 0,
+            KeyCode::PageDown => y = h,
+            KeyCode::Home => x = 0,
+            KeyCode::End => x = w,
+            _ => (),
+        }
+
+        self.cursor_position = Position { x, y }
     }
 
     /// Confirm whether you need to exit the editor.
@@ -105,6 +142,7 @@ impl Editor {
                 Terminal::clear_screen_all();
                 println!("bye!\r");
 
+                Terminal::cursor_show();
                 Terminal::disable_raw_mode();
             }
             false => {}
@@ -129,15 +167,33 @@ impl Editor {
 
     /// write welcome message
     fn draw_welcome_message(&self) {
-        let mut welcome_message = format!("Raw editor -- version {}", VERSION);
-        let width = self.terminal.size().width as usize;
-        let len = welcome_message.len();
-        let padding = width.saturating_sub(len) / 2;
-        let spaces = " ".repeat(padding.saturating_sub(1));
-        welcome_message = format!("~{}{}", spaces, welcome_message);
-        welcome_message.truncate(width);
-        println!("{}\r", welcome_message);
+        println!(
+            "{}\r",
+            format_to_center(
+                format!("{} editor -- version {}", "raw".cyan().bold(), VERSION),
+                self.terminal.size()
+            )
+        );
+        println!(
+            "{}\r",
+            format_to_center(
+                format!("{}", "hello world".to_string().red()),
+                self.terminal.size()
+            )
+        );
     }
+}
+
+/// format to center
+fn format_to_center(mut str: String, size: &Size) -> String {
+    let width = size.width as usize;
+    let len = str.len();
+    let padding = width.saturating_sub(len) / 2;
+    let spaces = " ".repeat(padding.saturating_sub(1));
+    str = format!("~{}{}", spaces, str);
+    str.truncate(width);
+
+    str
 }
 
 /// handle error
