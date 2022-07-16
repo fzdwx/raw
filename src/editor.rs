@@ -1,4 +1,5 @@
 use std::env::args;
+use std::env::args;
 use std::io::Error;
 use std::time::{Duration, Instant};
 
@@ -50,7 +51,7 @@ impl Editor {
                 doc.unwrap()
             } else {
                 initial_status = format!("ERR: Could not open file: {}", filename);
-                Document::default()
+                Document::of(filename)
             }
         } else {
             Document::default()

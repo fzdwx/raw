@@ -13,7 +13,7 @@ pub struct Document {
 
 impl Document {
     /// open document.
-    pub fn open(filename: &str) -> Result<Document, std::io::Error> {
+    pub fn open(filename: &str) -> Result<Document, Error> {
         let contents = fs::read_to_string(filename)?;
 
         let mut rows = Vec::new();
@@ -25,6 +25,13 @@ impl Document {
             rows,
             filename: Some(filename.to_string()),
         })
+    }
+
+    pub fn of(filename: &str) -> Document {
+        Self {
+            rows: vec![],
+            filename: Some(filename.to_string()),
+        }
     }
 
     /// save file to disk
