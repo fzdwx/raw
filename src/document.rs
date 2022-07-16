@@ -28,6 +28,11 @@ impl Document {
 
     /// insert char to position
     pub fn insert(&mut self, at: &Position, c: char) {
+        if c == '\n' {
+            self.insert_new_line(at);
+            return;
+        };
+
         if at.y == self.len() {
             let mut row = Row::default();
             row.insert(0, c);
@@ -68,5 +73,21 @@ impl Document {
     /// the document rows length.
     pub fn len(&self) -> usize {
         self.rows.len()
+    }
+
+    /// insert new line to position
+    fn insert_new_line(&mut self, at: &Position) {
+        if at.y > self.len() {
+            return;
+        }
+
+        if at.y == self.len() {
+            self.rows.push(Row::default());
+            return;
+        }
+
+        // cut somewhere in a row
+        let new_row = self.rows.get_mut(at.y).unwrap().split(at.x);
+        self.rows.insert(at.y + 1, new_row);
     }
 }

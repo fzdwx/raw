@@ -41,6 +41,16 @@ impl Row {
         self.update_len();
     }
 
+    /// split current row
+    pub fn split(&mut self, at: usize) -> Row {
+        let beginning: String = self.source[..].graphemes(true).take(at).collect();
+        let remainder: String = self.source[..].graphemes(true).skip(at).collect();
+        self.source = beginning;
+        self.update_len();
+
+        Self::from(&remainder[..])
+    }
+
     /// refresh row length
     pub fn update_len(&mut self) {
         self.len = self.source[..].graphemes(true).count()
