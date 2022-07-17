@@ -41,7 +41,7 @@ impl Row {
                 if c == '\t' {
                     result.push(' ');
                 } else {
-                    result.push(c)
+                    result.push(c);
                 }
             }
         }

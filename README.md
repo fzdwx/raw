@@ -1,6 +1,3 @@
 # raw
-asd
 
-build your own text editor in rust,from https://www.philippflenker.com/hecto/.
-
-asdasd
+raw is a rust text editor.it is based [hecto](https://www.philippflenker.com/hecto/)

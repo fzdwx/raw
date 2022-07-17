@@ -51,7 +51,7 @@ impl Type {
                 g: 161,
                 b: 152,
             },
-            _ => Color::Reset,
+            Type::None => Color::Reset,
         }
     }
 }

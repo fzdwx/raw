@@ -15,4 +15,4 @@ lint-s:
     cargo clippy -- -W clippy::pedantic
 
 bin:
-  cargo run --bin bin -- arg1
+  cargo run --bin raw

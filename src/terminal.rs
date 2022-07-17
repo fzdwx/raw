@@ -42,7 +42,7 @@ impl Terminal {
     }
 
     /// read event. blocks until get event.
-    pub fn read_event(&mut self) -> Result<Event, Error> {
+    pub fn read_event(&self) -> Result<Event, Error> {
         crossterm::event::read()
     }
 
@@ -53,7 +53,7 @@ impl Terminal {
 
     /// reset terminal foreground color
     pub fn reset_bg_color() {
-        Terminal::set_bg_color(Color::Reset)
+        Terminal::set_bg_color(Color::Reset);
     }
 
     /// set terminal foreground color
@@ -63,7 +63,7 @@ impl Terminal {
 
     /// reset terminal background color
     pub fn reset_fg_color() {
-        Terminal::set_fg_color(Color::Reset)
+        Terminal::set_fg_color(Color::Reset);
     }
 
     pub fn disable_raw_mode() {
@@ -77,12 +77,12 @@ impl Terminal {
 
     /// clear terminal all cells
     pub fn clear_screen_all() {
-        Terminal::clear_screen(ClearType::All)
+        Terminal::clear_screen(ClearType::All);
     }
 
     /// clear terminal current line
     pub fn clear_screen_current_line() {
-        Terminal::clear_screen(ClearType::CurrentLine)
+        Terminal::clear_screen(ClearType::CurrentLine);
     }
 
     /// flush Terminal buffers
@@ -109,7 +109,7 @@ impl Terminal {
 
     /// moves the terminal cursor to the origin.
     pub fn move_to_origin() {
-        Terminal::move_to(&ORIGIN)
+        Terminal::move_to(&ORIGIN);
     }
 
     pub fn size(&self) -> &Size {

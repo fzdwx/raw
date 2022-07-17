@@ -11,18 +11,16 @@ use crate::terminal::{Position, Terminal};
 
 const BANNER_WIDTH: usize = 45;
 
-const STATUS_BG_COLOR: Color = Color::Rgb {
-    r: 239,
-    g: 239,
-    b: 239,
-};
-
 const STATUS_FG_COLOR: Color = Color::Rgb {
-    r: 63,
-    g: 63,
-    b: 63,
+    r: 41,
+    g: 56,
+    b: 68,
 };
-
+const STATUS_BG_COLOR: Color = Color::Rgb {
+    r: 153,
+    g: 195,
+    b: 217,
+};
 const QUIT_TIMES: u8 = 1;
 
 #[derive(PartialEq, Copy, Clone)]
@@ -390,7 +388,7 @@ impl Editor {
                 Terminal::reset_bg_color();
                 Terminal::reset_fg_color();
                 Terminal::clear_screen_all();
-                println!("\r\n\r\n\r\n\r\n\r\nbye!\r");
+                println!("                             bye!\r");
 
                 Terminal::cursor_show();
                 Terminal::disable_raw_mode();
