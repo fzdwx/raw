@@ -1,3 +1,4 @@
+use crate::editor::SearchDirection;
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Default)]
@@ -82,16 +83,41 @@ impl Row {
     }
 
     /// find query in current row?
-    pub fn find(&self, query: &str) -> Option<usize> {
-        let matching_byte_index = self.source.find(query);
+    pub fn find(&self, query: &str, at: usize, direction: SearchDirection) -> Option<usize> {
+        if at > self.len {
+            return None;
+        }
+
+        let start = if direction == SearchDirection::FORWARD {
+            at
+        } else {
+            0
+        };
+        let end = if direction == SearchDirection::FORWARD {
+            self.len
+        } else {
+            at
+        };
+
+        let sub_string: String = self.source[..]
+            .graphemes(true)
+            .skip(start)
+            .take(end - start)
+            .collect();
+
+        let matching_byte_index = if direction == SearchDirection::FORWARD {
+            sub_string.find(query)
+        } else {
+            sub_string.rfind(query)
+        };
+
         if let Some(matching_byte_index) = matching_byte_index {
             for (grapheme_index, (byte_index, _)) in
-                self.source[..].grapheme_indices(true).enumerate()
+                sub_string[..].grapheme_indices(true).enumerate()
             {
                 if matching_byte_index == byte_index {
-                    // 如果不加query.len 就是跳到第一个单词前面,
-                    // 加了就是跳到最后
-                    return Some(grapheme_index + query.len());
+                    #[allow(clippy::integer_arithmetic)]
+                    return Some(grapheme_index + start);
                 }
             }
         }

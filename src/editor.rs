@@ -25,6 +25,12 @@ const STATUS_FG_COLOR: Color = Color::Rgb {
 
 const QUIT_TIMES: u8 = 1;
 
+#[derive(PartialEq, Copy, Clone)]
+pub enum SearchDirection {
+    FORWARD,
+    BACKWARD,
+}
+
 pub struct Editor {
     // quit flag
     should_quit: bool,
@@ -222,22 +228,36 @@ impl Editor {
     // search some string
     fn search(&mut self) {
         let old_position = self.cursor_position.clone();
-
-        if let Some(query) = self
-            .prompt("Search: ", |editor, _, query| {
-                if let Some(position) = editor.document.find(query) {
-                    editor.cursor_position = position;
-                    editor.scroll();
+        let mut direction = SearchDirection::FORWARD;
+        let callback = |editor: &mut Editor, key: KeyEvent, query: &String| {
+            let mut moved = false;
+            match key.code {
+                KeyCode::Right | KeyCode::Down => {
+                    direction = SearchDirection::FORWARD;
+                    editor.move_cursor(KeyCode::Right);
+                    moved = true;
                 }
-            })
-            .unwrap_or(None)
-        {
-            if let Some(p) = self.document.find(&query[..]) {
-                self.cursor_position = p
-            } else {
-                self.status_message = StatusMessage::warn(format!("Not found \"{}\"", query.red()))
+
+                KeyCode::Left | KeyCode::Up => direction = SearchDirection::BACKWARD,
+                _ => direction = SearchDirection::FORWARD,
             }
-        } else {
+
+            if let Some(position) = editor
+                .document
+                .find(&query, &editor.cursor_position, direction)
+            {
+                editor.cursor_position = position;
+                editor.scroll();
+            } else if moved {
+                editor.move_cursor(KeyCode::Left)
+            }
+        };
+
+        let query = self
+            .prompt("Search (ESC to cancel, Arrows to navigate): ", callback)
+            .unwrap_or(None);
+
+        if query.is_none() {
             self.cursor_position = old_position;
             self.scroll();
         }
@@ -463,9 +483,9 @@ impl Editor {
     }
 
     // prompt user.
-    fn prompt<C>(&mut self, prompt: &str, callback: C) -> Result<Option<String>, Error>
+    fn prompt<C>(&mut self, prompt: &str, mut callback: C) -> Result<Option<String>, Error>
     where
-        C: Fn(&mut Self, KeyEvent, &String),
+        C: FnMut(&mut Self, KeyEvent, &String),
     {
         let mut result = String::new();
         loop {

@@ -7,6 +7,8 @@
     clippy::wildcard_enum_match_arm,
     clippy::else_if_without_else
 )]
+extern crate core;
+
 use crate::editor::Editor;
 
 mod document;
