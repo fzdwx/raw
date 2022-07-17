@@ -2,6 +2,7 @@ use crossterm::style::{Color, SetForegroundColor};
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::editor::SearchDirection;
+use crate::filetype::HighlightingOptions;
 use crate::highlighting;
 
 #[derive(Default)]
@@ -51,8 +52,8 @@ impl Row {
     }
 
     /// highlight current row
-    pub fn highlight(&mut self, word: Option<&str>) {
-        let mut h = Vec::new();
+    pub fn highlight(&mut self, opts: HighlightingOptions, word: Option<&str>) {
+        let mut highlighting = Vec::new();
         let chars: Vec<char> = self.source.chars().collect();
         let mut matches = Vec::new();
         let mut search_index = 0;
@@ -76,7 +77,7 @@ impl Row {
                 if matches.contains(&index) {
                     for _ in word[..].graphemes(true) {
                         index += 1;
-                        h.push(highlighting::Type::Match)
+                        highlighting.push(highlighting::Type::Match)
                     }
                     continue;
                 }
@@ -84,27 +85,33 @@ impl Row {
 
             let prev_highlight = if index > 0 {
                 #[allow(clippy::integer_arithmetic)]
-                h.get(index - 1).unwrap_or(&highlighting::Type::None)
+                highlighting
+                    .get(index - 1)
+                    .unwrap_or(&highlighting::Type::None)
             } else {
                 &highlighting::Type::None
             };
 
-            if (c.is_ascii_digit()
-                // 前面是分隔符或前面是数字
-                && (prev_is_separator || prev_highlight == &highlighting::Type::Number))
-                // 支持小数
-                || (c == &'.' && prev_highlight == &highlighting::Type::Number)
-            {
-                h.push(highlighting::Type::Number)
+            if opts.numbers() {
+                if (c.is_ascii_digit()
+                    // 前面是分隔符或前面是数字
+                    && (prev_is_separator || prev_highlight == &highlighting::Type::Number))
+                    // 支持小数
+                    || (c == &'.' && prev_highlight == &highlighting::Type::Number)
+                {
+                    highlighting.push(highlighting::Type::Number)
+                } else {
+                    highlighting.push(highlighting::Type::None)
+                }
             } else {
-                h.push(highlighting::Type::None)
+                highlighting.push(highlighting::Type::None)
             }
 
             prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
             index += 1;
         }
 
-        self.highlighting = h;
+        self.highlighting = highlighting;
     }
 
     /// insert char at target index

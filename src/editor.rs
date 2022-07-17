@@ -63,7 +63,7 @@ impl Editor {
                     format!("Could not open file {}", filename.clone().green()),
                     doc.err().unwrap(),
                 );
-                Document::of(filename)
+                Document::with_file_name(filename)
             }
         } else {
             Document::default()
@@ -438,7 +438,8 @@ impl Editor {
         );
 
         let line_indicator = format!(
-            "{}/{}",
+            "{} | {}/{}",
+            self.document.file_type(),
             self.cursor_position.y.saturating_add(1),
             self.document.len()
         );

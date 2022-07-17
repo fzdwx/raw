@@ -13,9 +13,10 @@ use crate::editor::Editor;
 
 mod document;
 mod editor;
+mod filetype;
+mod highlighting;
 mod row;
 mod terminal;
-mod highlighting;
 
 fn main() {
     Editor::default().run();
