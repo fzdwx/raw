@@ -1,5 +1,6 @@
 use std::env::args;
 use std::io::Error;
+use std::thread::sleep;
 use std::time::{Duration, Instant};
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
@@ -101,7 +102,24 @@ impl Editor {
             if let Err(error) = self.process_event() {
                 die(error);
             }
+
+            for i in 0..10 {
+                sleep(Duration::from_millis(50));
+                self.replace_and_notify_message(Message::info(format!("hell world- {}", i)));
+            }
         }
+    }
+
+    /// show message to message bar
+    pub fn notify_message(&self, message: Message) {
+        self.draw_message_bar(message);
+        Terminal::flush().unwrap();
+    }
+
+    /// show status message
+    pub fn status_message(&self, message: String) {
+        self.draw_status_bar(message);
+        Terminal::flush().unwrap();
     }
 
     /// refresh screen
@@ -122,8 +140,8 @@ impl Editor {
             );
 
             self.draw_rows();
-            self.draw_status_bar();
-            self.draw_message_bar();
+            self.draw_default_status_bar();
+            self.draw_message_bar(self.message.clone());
 
             Terminal::move_to(&Position {
                 x: self.cursor_position.x.saturating_sub(self.offset.x),
@@ -147,7 +165,7 @@ impl Editor {
                     }
 
                     Event::Resize(width, height) => {
-                        self.notify_message(Message::info(format!(
+                        self.replace_and_notify_message(Message::info(format!(
                             "{},{} -> {},{}",
                             self.terminal.size().width,
                             self.terminal.size().height,
@@ -171,7 +189,7 @@ impl Editor {
             // handler quit editor
             (KeyCode::Char('q'), KeyModifiers::CONTROL) | (KeyCode::Esc, _) => {
                 if self.quit_times > 0 && self.document.is_dirty() {
-                    self.notify_message(Message::warn(format!(
+                    self.replace_and_notify_message(Message::warn(format!(
                         "File has unsaved changes. Press Ctrl-Q {} more times to quit.",
                         self.quit_times
                     )));
@@ -222,7 +240,7 @@ impl Editor {
         self.scroll();
         if self.quit_times < QUIT_TIMES {
             self.quit_times = QUIT_TIMES;
-            self.notify_message(Message::default());
+            self.replace_and_notify_message(Message::default());
         }
     }
 
@@ -231,7 +249,7 @@ impl Editor {
         if self.document.filename.is_none() {
             let new_name = self.prompt("Save as: ", |_, _, _| {}).unwrap_or(None);
             if new_name.is_none() {
-                self.notify_message(Message::info_raw("Save aborted."));
+                self.replace_and_notify_message(Message::info_raw("Save aborted."));
                 return;
             };
             self.document.filename = new_name;
@@ -239,10 +257,10 @@ impl Editor {
 
         match self.document.save() {
             Ok(_) => {
-                self.notify_message(Message::info_raw("File saved successfully"));
+                self.replace_and_notify_message(Message::info_raw("File saved successfully"));
             }
             Err(err) => {
-                self.notify_message(Message::error_raw("Writing file fail", err));
+                self.replace_and_notify_message(Message::error_raw("Writing file fail", err));
             }
         }
     }
@@ -438,8 +456,8 @@ impl Editor {
         println!("{}\r", row);
     }
 
-    /// draw status bar
-    fn draw_status_bar(&self) {
+    /// draw default status bar
+    fn draw_default_status_bar(&self) {
         let mut status;
         let w = self.terminal.size().width as usize;
 
@@ -476,21 +494,32 @@ impl Editor {
         status = format!("{}{}", status, line_indicator);
         status.truncate(w);
 
+        self.draw_status_bar(status);
+    }
+
+    /// draw status bar
+    fn draw_status_bar(&self, message: String) {
+        Terminal::move_to(&Position {
+            x: 0,
+            y: (self.terminal.size().height) as usize,
+        });
+        Terminal::clear_screen_current_line();
+
         Terminal::set_bg_color(STATUS_BG_COLOR);
         Terminal::set_fg_color(STATUS_FG_COLOR);
-        println!("{}\r", status);
+        println!("{}\r", message);
         Terminal::reset_fg_color();
         Terminal::reset_bg_color();
     }
 
-    pub fn notify_message(&mut self, message: Message) {
-        self.message = message;
-    }
-
     /// draw message bar
-    fn draw_message_bar(&self) {
+    fn draw_message_bar(&self, message: Message) {
+        Terminal::move_to(&Position {
+            x: 0,
+            y: (self.terminal.size().height + 1) as usize,
+        });
         Terminal::clear_screen_current_line();
-        let message = &self.message;
+
         if Instant::now() - message.time < Duration::new(5, 0) {
             let mut text = message.text.clone();
             text.truncate(self.terminal.size().width as usize);
@@ -531,7 +560,7 @@ impl Editor {
     {
         let mut result = String::new();
         loop {
-            self.notify_message(Message::prompt(format!("{}{}", prompt, result)));
+            self.replace_and_notify_message(Message::prompt(format!("{}{}", prompt, result)));
             self.refresh_screen()?;
             let event = self.terminal.read_event().unwrap();
 
@@ -556,15 +585,23 @@ impl Editor {
                 callback(self, key, &result)
             }
         }
-        self.notify_message(Message::default());
+        self.replace_and_notify_message(Message::default());
         if result.is_empty() {
             return Ok(None);
         }
         Ok(Some(result))
     }
+
+    /// replace and notify message.
+    fn replace_and_notify_message(&mut self, message: Message) {
+        let message_clone = message.clone();
+        self.message = message;
+        self.notify_message(message_clone);
+    }
 }
 
-struct Message {
+#[derive(Clone)]
+pub struct Message {
     text: String,
     time: Instant,
 }
