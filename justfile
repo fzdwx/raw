@@ -3,6 +3,12 @@
 run:
    cargo run
 
+# install raw editor
+install:
+    sudo cp just /usr/local/bin/just
+    cargo build --release
+    sudo cp ./target/release/raw /usr/local/bin/ra
+
 release:
   cargo build --release    
 
