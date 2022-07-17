@@ -29,7 +29,7 @@ impl Name {
             Rust => "Rust".to_string(),
             GoLang => "Golang".to_string(),
             Java => "Java".to_string(),
-            Name::Other => "No FileType".to_string(),
+            Name::Other => "No fileType".to_string(),
         }
     }
 }

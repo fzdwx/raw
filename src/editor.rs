@@ -7,7 +7,7 @@ use crossterm::style::{Color, Stylize};
 
 use crate::document::Document;
 use crate::row::Row;
-use crate::terminal::{Position, Size, Terminal};
+use crate::terminal::{Position, Terminal};
 
 const BANNER_WIDTH: usize = 45;
 
@@ -139,7 +139,7 @@ impl Editor {
 
     /// read event and process event
     fn process_event(&mut self) -> Result<(), Error> {
-        return match Terminal::read_event() {
+        return match self.terminal.read_event() {
             Ok(event) => {
                 match event {
                     Event::Key(input_key) => self.process_keypress(input_key),
@@ -387,11 +387,14 @@ impl Editor {
     pub fn check_quit(&self) -> bool {
         match self.should_quit {
             true => {
+                Terminal::reset_bg_color();
+                Terminal::reset_fg_color();
                 Terminal::clear_screen_all();
-                println!("bye!\r");
+                println!("\r\n\r\n\r\n\r\n\r\nbye!\r");
 
                 Terminal::cursor_show();
                 Terminal::disable_raw_mode();
+                Terminal::flush().ok();
             }
             false => {}
         }
@@ -425,7 +428,7 @@ impl Editor {
             } else if self.document.is_empty() && terminal_row == x {
                 self.draw_banner();
             } else {
-                println!("~\r");
+                println!("\r");
             }
         }
     }
@@ -496,7 +499,7 @@ impl Editor {
 
         for row in self.banner.rows() {
             let mut row = row.render(start, end);
-            row = format!("~{}{}", spaces, row);
+            row = format!("{}{}", spaces, row);
 
             if row.len() > width {
                 while width > 0 {
@@ -536,7 +539,7 @@ impl Editor {
         loop {
             self.status_message = StatusMessage::prompt(format!("{}{}", prompt, result));
             self.refresh_screen()?;
-            let event = Terminal::read_event().unwrap();
+            let event = self.terminal.read_event().unwrap();
 
             if let Event::Key(key) = event {
                 match (key.code, key.modifiers) {
@@ -614,19 +617,6 @@ impl StatusMessage {
     fn new(prefix: String, suffix: String) -> Self {
         StatusMessage::from(format!("{} {}", prefix, suffix))
     }
-}
-
-/// format to center
-fn format_to_center(mut str: String, size: &Size) -> String {
-    let width = size.width as usize;
-    let len = str.len();
-    #[allow(clippy::integer_arithmetic, clippy::integer_division)]
-    let padding = width.saturating_sub(len) / 2;
-    let spaces = " ".repeat(padding.saturating_sub(1));
-    str = format!("~{}{}", spaces, str);
-    str.truncate(width);
-
-    str
 }
 
 /// handle error

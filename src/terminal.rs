@@ -3,7 +3,7 @@ use std::io::{stdout, Error, Write};
 use crossterm::event::Event;
 use crossterm::style::Color;
 use crossterm::terminal::{Clear, ClearType};
-use crossterm::{style, ErrorKind, QueueableCommand};
+use crossterm::{style, QueueableCommand};
 
 const ORIGIN: Position = Position { x: 0, y: 0 };
 
@@ -26,7 +26,7 @@ pub struct Position {
 }
 
 impl Terminal {
-    pub fn default() -> Result<Terminal, ErrorKind> {
+    pub fn default() -> Result<Terminal, Error> {
         let size = crossterm::terminal::size().unwrap();
 
         match crossterm::terminal::enable_raw_mode() {
@@ -39,6 +39,11 @@ impl Terminal {
 
             Err(err) => Err(err),
         }
+    }
+
+    /// read event. blocks until get event.
+    pub fn read_event(&mut self) -> Result<Event, Error> {
+        crossterm::event::read()
     }
 
     /// set terminal background color
@@ -83,11 +88,6 @@ impl Terminal {
     /// flush Terminal buffers
     pub fn flush() -> Result<(), Error> {
         stdout().flush()
-    }
-
-    /// read event. blocks until get event.
-    pub fn read_event() -> Result<Event, ErrorKind> {
-        crossterm::event::read()
     }
 
     /// hide cursor
