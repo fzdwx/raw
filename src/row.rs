@@ -236,6 +236,11 @@ impl Row {
 
         None
     }
+
+    /// get source text
+    pub fn source(&self) -> &String {
+        &self.source
+    }
     /// to bytes
     pub fn as_bytes(&self) -> &[u8] {
         self.source.as_bytes()

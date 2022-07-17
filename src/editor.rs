@@ -43,7 +43,7 @@ pub struct Editor {
     // banner
     banner: Document,
     // status message
-    status_message: StatusMessage,
+    message: Message,
     // check quit times
     quit_times: u8,
     highlighted_word: Option<String>,
@@ -54,14 +54,14 @@ impl Editor {
     pub fn default() -> Editor {
         let args: Vec<String> = args().collect();
         let mut initial_status =
-            StatusMessage::info_raw("HELP: Ctrl-F = find | Ctrl-S = save | Ctrl-Q = quit");
+            Message::info_raw("HELP: Ctrl-F = find | Ctrl-S = save | Ctrl-Q = quit");
 
         let document = if let Some(filename) = args.get(1) {
             let doc = Document::open(filename);
             if let Ok(doc) = doc {
                 doc
             } else {
-                initial_status = StatusMessage::error(
+                initial_status = Message::error(
                     format!("Could not open file {}", filename.clone().green()),
                     doc.err().unwrap(),
                 );
@@ -80,7 +80,7 @@ impl Editor {
             offset: Position::default(),
             document,
             banner: Document::with_string(banner),
-            status_message: initial_status,
+            message: initial_status,
             quit_times: QUIT_TIMES,
             highlighted_word: None,
         }
@@ -146,8 +146,15 @@ impl Editor {
                         println!("{:?}", event);
                     }
 
-                    Event::Resize(_, _) => {
-                        println!("{:?}", event);
+                    Event::Resize(width, height) => {
+                        self.notify_message(Message::info(format!(
+                            "{},{} -> {},{}",
+                            self.terminal.size().width,
+                            self.terminal.size().height,
+                            width,
+                            height
+                        )));
+                        self.terminal.resize(width, height - 2);
                     }
                 }
 
@@ -164,10 +171,10 @@ impl Editor {
             // handler quit editor
             (KeyCode::Char('q'), KeyModifiers::CONTROL) | (KeyCode::Esc, _) => {
                 if self.quit_times > 0 && self.document.is_dirty() {
-                    self.status_message = StatusMessage::warn(format!(
+                    self.notify_message(Message::warn(format!(
                         "File has unsaved changes. Press Ctrl-Q {} more times to quit.",
                         self.quit_times
-                    ));
+                    )));
                     self.quit_times -= 1;
                     return;
                 }
@@ -215,7 +222,7 @@ impl Editor {
         self.scroll();
         if self.quit_times < QUIT_TIMES {
             self.quit_times = QUIT_TIMES;
-            self.status_message = StatusMessage::default();
+            self.notify_message(Message::default());
         }
     }
 
@@ -224,18 +231,18 @@ impl Editor {
         if self.document.filename.is_none() {
             let new_name = self.prompt("Save as: ", |_, _, _| {}).unwrap_or(None);
             if new_name.is_none() {
-                self.status_message = StatusMessage::info_raw("Save aborted.");
+                self.notify_message(Message::info_raw("Save aborted."));
                 return;
-            }
+            };
             self.document.filename = new_name;
         }
 
         match self.document.save() {
             Ok(_) => {
-                self.status_message = StatusMessage::info_raw("File saved successfully");
+                self.notify_message(Message::info_raw("File saved successfully"));
             }
             Err(err) => {
-                self.status_message = StatusMessage::error_raw("Writing file fail", err);
+                self.notify_message(Message::error_raw("Writing file fail", err));
             }
         }
     }
@@ -388,7 +395,7 @@ impl Editor {
                 Terminal::reset_bg_color();
                 Terminal::reset_fg_color();
                 Terminal::clear_screen_all();
-                println!("                             bye!\r");
+                println!("bye!\r");
 
                 Terminal::cursor_show();
                 Terminal::disable_raw_mode();
@@ -398,16 +405,6 @@ impl Editor {
         }
 
         self.should_quit
-    }
-
-    /// draw row to terminal
-    pub fn draw_row(&self, row: &Row) {
-        let width = self.terminal.size().width as usize;
-
-        let start = self.offset.x;
-        let end = self.offset.x.saturating_add(width);
-        let row = row.render(start, end);
-        println!("{}\r", row);
     }
 
     /// draw document to terminal
@@ -429,6 +426,16 @@ impl Editor {
                 println!("\r");
             }
         }
+    }
+
+    /// draw row to terminal
+    pub fn draw_row(&self, row: &Row) {
+        let width = self.terminal.size().width as usize;
+
+        let start = self.offset.x;
+        let end = self.offset.x.saturating_add(width);
+        let row = row.render(start, end);
+        println!("{}\r", row);
     }
 
     /// draw status bar
@@ -476,10 +483,14 @@ impl Editor {
         Terminal::reset_bg_color();
     }
 
+    pub fn notify_message(&mut self, message: Message) {
+        self.message = message;
+    }
+
     /// draw message bar
     fn draw_message_bar(&self) {
         Terminal::clear_screen_current_line();
-        let message = &self.status_message;
+        let message = &self.message;
         if Instant::now() - message.time < Duration::new(5, 0) {
             let mut text = message.text.clone();
             text.truncate(self.terminal.size().width as usize);
@@ -511,21 +522,6 @@ impl Editor {
             }
             println!("{}\r", row);
         }
-
-        // println!(
-        //     "{}\r",
-        //     format_to_center(
-        //         format!("{} editor -- version {}", "raw".cyan().bold(), VERSION),
-        //         self.terminal.size()
-        //     )
-        // );
-        // println!(
-        //     "{}\r",
-        //     format_to_center(
-        //         format!("{}", "hello world".to_string().red()),
-        //         self.terminal.size()
-        //     )
-        // );
     }
 
     // prompt user.
@@ -535,7 +531,7 @@ impl Editor {
     {
         let mut result = String::new();
         loop {
-            self.status_message = StatusMessage::prompt(format!("{}{}", prompt, result));
+            self.notify_message(Message::prompt(format!("{}{}", prompt, result)));
             self.refresh_screen()?;
             let event = self.terminal.read_event().unwrap();
 
@@ -560,7 +556,7 @@ impl Editor {
                 callback(self, key, &result)
             }
         }
-        self.status_message = StatusMessage::default();
+        self.notify_message(Message::default());
         if result.is_empty() {
             return Ok(None);
         }
@@ -568,12 +564,12 @@ impl Editor {
     }
 }
 
-struct StatusMessage {
+struct Message {
     text: String,
     time: Instant,
 }
 
-impl StatusMessage {
+impl Message {
     fn from(message: String) -> Self {
         Self {
             text: message,
@@ -582,38 +578,38 @@ impl StatusMessage {
     }
 
     fn default() -> Self {
-        StatusMessage::from(String::new())
+        Message::from(String::new())
     }
 
     fn error(message: String, err: Error) -> Self {
-        StatusMessage::new(
+        Message::new(
             "ERROR".red().to_string(),
             format!("{}. Cause is {}", message, err),
         )
     }
 
     fn warn(message: String) -> Self {
-        StatusMessage::new("WARNING".yellow().to_string(), message)
+        Message::new("WARNING".yellow().to_string(), message)
     }
 
     fn info(message: String) -> Self {
-        StatusMessage::new("INFO".green().to_string(), message)
+        Message::new("INFO".green().to_string(), message)
     }
 
     fn prompt(message: String) -> Self {
-        StatusMessage::new("PROMPT ".cyan().to_string(), message)
+        Message::new("PROMPT ".cyan().to_string(), message)
     }
 
     fn error_raw(message: &str, err: Error) -> Self {
-        StatusMessage::error(message.to_string(), err)
+        Message::error(message.to_string(), err)
     }
 
     fn info_raw(message: &str) -> Self {
-        StatusMessage::info(message.to_string())
+        Message::info(message.to_string())
     }
 
     fn new(prefix: String, suffix: String) -> Self {
-        StatusMessage::from(format!("{} {}", prefix, suffix))
+        Message::from(format!("{} {}", prefix, suffix))
     }
 }
 

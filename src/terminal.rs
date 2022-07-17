@@ -41,6 +41,10 @@ impl Terminal {
         }
     }
 
+    pub fn resize(&mut self, width: u16, height: u16) {
+        self.size = Size { width, height }
+    }
+
     /// read event. blocks until get event.
     pub fn read_event(&self) -> Result<Event, Error> {
         crossterm::event::read()
