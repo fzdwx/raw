@@ -72,6 +72,7 @@ impl Row {
 
         let mut index = 0;
         let mut prev_is_separator = true; // 为了正确的显示数字(要求数字前面有一个分隔符)
+        let mut in_string = false;
         while let Some(c) = chars.get(index) {
             if let Some(word) = word {
                 if matches.contains(&index) {
@@ -92,12 +93,40 @@ impl Row {
                 &highlighting::Type::None
             };
 
+            if opts.strings() {
+                if in_string {
+                    highlighting.push(highlighting::Type::String);
+
+                    if *c == '\\' && index < self.len().saturating_sub(1) {
+                        highlighting.push(highlighting::Type::String);
+                        index += 2;
+                        continue;
+                    }
+
+                    if *c == '"' {
+                        in_string = false;
+                        prev_is_separator = true;
+                    } else {
+                        prev_is_separator = false;
+                    }
+
+                    index += 1;
+                    continue;
+                } else if prev_is_separator && *c == '"' {
+                    highlighting.push(highlighting::Type::String);
+                    in_string = true;
+                    prev_is_separator = true;
+                    index += 1;
+                    continue;
+                };
+            }
+
             if opts.numbers() {
                 if (c.is_ascii_digit()
                     // 前面是分隔符或前面是数字
-                    && (prev_is_separator || prev_highlight == &highlighting::Type::Number))
+                    && (prev_is_separator || *prev_highlight == highlighting::Type::Number))
                     // 支持小数
-                    || (c == &'.' && prev_highlight == &highlighting::Type::Number)
+                    || (*c == '.' && *prev_highlight == highlighting::Type::Number)
                 {
                     highlighting.push(highlighting::Type::Number)
                 } else {

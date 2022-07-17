@@ -5,6 +5,12 @@ pub struct FileType {
     highlight_opts: HighlightingOptions,
 }
 
+#[derive(Default, Copy, Clone)]
+pub struct HighlightingOptions {
+    numbers: bool,
+    strings: bool,
+}
+
 pub enum Name {
     RUST,
     GoLang,
@@ -33,17 +39,26 @@ impl FileType {
         if filename.ends_with(".rs") {
             return Self {
                 name: RUST.name(),
-                highlight_opts: HighlightingOptions { numbers: true },
+                highlight_opts: HighlightingOptions {
+                    numbers: true,
+                    strings: true,
+                },
             };
         } else if filename.ends_with(".go") {
             return Self {
                 name: GoLang.name(),
-                highlight_opts: HighlightingOptions { numbers: true },
+                highlight_opts: HighlightingOptions {
+                    numbers: true,
+                    strings: true,
+                },
             };
         } else if filename.ends_with(".java") {
             return Self {
                 name: Java.name(),
-                highlight_opts: HighlightingOptions { numbers: true },
+                highlight_opts: HighlightingOptions {
+                    numbers: true,
+                    strings: true,
+                },
             };
         } else {
             Self::default()
@@ -61,14 +76,14 @@ impl FileType {
     }
 }
 
-#[derive(Default, Copy, Clone)]
-pub struct HighlightingOptions {
-    numbers: bool,
-}
-
 impl HighlightingOptions {
+    /// get
     pub fn numbers(&self) -> bool {
         self.numbers
+    }
+    /// get
+    pub fn strings(&self) -> bool {
+        self.strings
     }
 }
 
