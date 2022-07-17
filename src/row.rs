@@ -81,6 +81,21 @@ impl Row {
         }
     }
 
+    /// find query in current row?
+    pub fn find(&self, query: &str) -> Option<usize> {
+        let matching_byte_index = self.source.find(query);
+        if let Some(matching_byte_index) = matching_byte_index {
+            for (grapheme_index, (byte_index, _)) in
+                self.source[..].grapheme_indices(true).enumerate()
+            {
+                if matching_byte_index == byte_index {
+                    return Some(grapheme_index);
+                }
+            }
+        }
+
+        None
+    }
     /// to bytes
     pub fn as_bytes(&self) -> &[u8] {
         self.source.as_bytes()

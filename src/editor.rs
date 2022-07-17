@@ -45,7 +45,8 @@ impl Editor {
     /// create default Editor
     pub fn default() -> Editor {
         let args: Vec<String> = args().collect();
-        let mut initial_status = StatusMessage::info_raw("HELP: Ctrl-S = save | Ctrl-Q = quit");
+        let mut initial_status =
+            StatusMessage::info_raw("HELP: Ctrl-F = find | Ctrl-S = save | Ctrl-Q = quit");
 
         let document = if let Some(filename) = args.get(1) {
             let doc = Document::open(filename);
@@ -153,6 +154,7 @@ impl Editor {
             }
 
             (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.save(),
+            (KeyCode::Char('f'), KeyModifiers::CONTROL) => self.search(),
 
             // add char
             (KeyCode::Char(c), _) => {
@@ -213,6 +215,16 @@ impl Editor {
             }
             Err(err) => {
                 self.status_message = StatusMessage::error_raw("Writing file fail", err);
+            }
+        }
+    }
+
+    fn search(&mut self) {
+        if let Some(query) = self.prompt("Search: ").unwrap_or(None) {
+            if let Some(p) = self.document.find(&query[..]) {
+                self.cursor_position = p
+            } else {
+                self.status_message = StatusMessage::warn(format!("Not found \"{}\"", query.red()))
             }
         }
     }
