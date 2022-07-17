@@ -1,3 +1,4 @@
+use crossterm::style::Stylize;
 use crate::editor::SearchDirection;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -150,10 +151,14 @@ impl Row {
             .skip(start)
             .take(end - start)
         {
-            if grapheme == "\t" {
-                result.push(' ');
-            } else {
-                result.push_str(grapheme);
+            if let Some(c) = grapheme.chars().next() {
+                if c == '\t' {
+                    result.push(' ');
+                } else if c.is_ascii_digit() {
+                   result.push_str( c.red().to_string().as_str())
+                }else {
+                    result.push(c)
+                }
             }
         }
 
