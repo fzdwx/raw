@@ -21,7 +21,7 @@ impl Document {
         let mut rows = Vec::new();
         for line in contents.lines() {
             let mut row = Row::from(line);
-            row.highlight();
+            row.highlight(None);
             rows.push(row);
         }
 
@@ -56,6 +56,13 @@ impl Document {
         Ok(())
     }
 
+    /// highlight current document
+    pub fn highlight(&mut self, word: Option<&str>) {
+        for row in &mut self.rows {
+            row.highlight(word)
+        }
+    }
+
     /// insert char to position
     pub fn insert(&mut self, at: &Position, c: char) {
         if at.y > self.rows.len() {
@@ -71,13 +78,13 @@ impl Document {
         if at.y == self.rows.len() {
             let mut row = Row::default();
             row.insert(0, c);
-            row.highlight();
+            row.highlight(None);
             self.rows.push(row);
         } else {
             #[allow(clippy::indexing_slicing)]
             let row = &mut self.rows[at.y];
             row.insert(at.x, c);
-            row.highlight();
+            row.highlight(None);
         }
     }
 
@@ -94,11 +101,11 @@ impl Document {
             let next_row = self.rows.remove(at.y + 1);
             let row = &mut self.rows[at.y];
             row.concat(&next_row);
-            row.highlight();
+            row.highlight(None);
         } else {
             let row = &mut self.rows[at.y];
             row.delete(at.x);
-            row.highlight();
+            row.highlight(None);
         }
     }
 
@@ -178,8 +185,8 @@ impl Document {
         let current_row = &mut self.rows[at.y];
         let mut new_row = current_row.split(at.x);
 
-        current_row.highlight();
-        new_row.highlight();
+        current_row.highlight(None);
+        new_row.highlight(None);
 
         #[allow(clippy::integer_arithmetic)]
         self.rows.insert(at.y + 1, new_row);

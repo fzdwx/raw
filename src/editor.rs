@@ -251,6 +251,8 @@ impl Editor {
             } else if moved {
                 editor.move_cursor(KeyCode::Left)
             }
+
+            editor.document.highlight(Some(query));
         };
 
         let query = self
@@ -261,6 +263,8 @@ impl Editor {
             self.cursor_position = old_position;
             self.scroll();
         }
+
+        self.document.highlight(None);
     }
 
     /// scroll

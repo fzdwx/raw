@@ -50,15 +50,43 @@ impl Row {
         result
     }
 
-    /// map char to highlight type
-    pub fn highlight(&mut self) {
+    /// highlight current row
+    pub fn highlight(&mut self, word: Option<&str>) {
         let mut h = Vec::new();
-        for c in self.source.chars() {
+        let chars: Vec<char> = self.source.chars().collect();
+        let mut matches = Vec::new();
+        let mut search_index = 0;
+
+        if let Some(word) = word {
+            while let Some(search_match) = self.find(word, search_index, SearchDirection::FORWARD) {
+                matches.push(search_match);
+                if let Some(next_index) = search_match.checked_add(word[..].graphemes(true).count())
+                {
+                    search_index = next_index;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let mut index = 0;
+        while let Some(c) = chars.get(index) {
+            if let Some(word) = word {
+                if matches.contains(&index) {
+                    for _ in word[..].graphemes(true) {
+                        index += 1;
+                        h.push(highlighting::Type::Match)
+                    }
+                    continue;
+                }
+            }
+
             if c.is_ascii_digit() {
                 h.push(highlighting::Type::Number)
             } else {
                 h.push(highlighting::Type::None)
             }
+            index += 1;
         }
 
         self.highlighting = h;
@@ -141,7 +169,7 @@ impl Row {
 
     /// find query in current row?
     pub fn find(&self, query: &str, at: usize, direction: SearchDirection) -> Option<usize> {
-        if at > self.len {
+        if at > self.len || query.is_empty() {
             return None;
         }
 
@@ -150,6 +178,7 @@ impl Row {
         } else {
             0
         };
+
         let end = if direction == SearchDirection::FORWARD {
             self.len
         } else {
