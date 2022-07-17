@@ -1,11 +1,14 @@
-use crossterm::style::Stylize;
-use crate::editor::SearchDirection;
+use crossterm::style::{Color, SetForegroundColor};
 use unicode_segmentation::UnicodeSegmentation;
+
+use crate::editor::SearchDirection;
+use crate::highlighting;
 
 #[derive(Default)]
 pub struct Row {
     source: String,
     len: usize,
+    highlighting: Vec<highlighting::Type>,
 }
 
 impl Row {
@@ -14,24 +17,51 @@ impl Row {
         let end = std::cmp::min(end, self.source.len());
         let start = std::cmp::min(start, end);
         let mut result = String::new();
+        let mut current_highlight = &highlighting::Type::None;
 
-        for grapheme in self.source[..]
+        for (index, grapheme) in self.source[..]
             .graphemes(true)
+            .enumerate()
             .skip(start)
             .take(end - start)
         {
             if let Some(c) = grapheme.chars().next() {
+                let highlight_type = self
+                    .highlighting
+                    .get(index)
+                    .unwrap_or(&highlighting::Type::None);
+
+                if current_highlight != highlight_type {
+                    current_highlight = highlight_type;
+                    result.push_str(
+                        format!("{}", SetForegroundColor(highlight_type.to_color())).as_str(),
+                    );
+                };
+
                 if c == '\t' {
                     result.push(' ');
-                } else if c.is_ascii_digit() {
-                    result.push_str( c.red().to_string().as_str())
-                }else {
+                } else {
                     result.push(c)
                 }
             }
         }
+        result.push_str(format!("{}", SetForegroundColor(Color::Reset)).as_str());
 
         result
+    }
+
+    /// map char to highlight type
+    pub fn highlight(&mut self) {
+        let mut h = Vec::new();
+        for c in self.source.chars() {
+            if c.is_ascii_digit() {
+                h.push(highlighting::Type::Number)
+            } else {
+                h.push(highlighting::Type::None)
+            }
+        }
+
+        self.highlighting = h;
     }
 
     /// insert char at target index
@@ -103,6 +133,7 @@ impl Row {
         self.source = row;
         self.len = length;
         Self {
+            highlighting: Vec::new(),
             source: splitted_row,
             len: splitted_length,
         }
@@ -171,6 +202,7 @@ impl From<&str> for Row {
         Self {
             source: String::from(line),
             len: line.graphemes(true).count(),
+            highlighting: Vec::new(),
         }
     }
 }
