@@ -9,6 +9,31 @@ pub struct Row {
 }
 
 impl Row {
+    /// render row start to end
+    pub fn render(&self, start: usize, end: usize) -> String {
+        let end = std::cmp::min(end, self.source.len());
+        let start = std::cmp::min(start, end);
+        let mut result = String::new();
+
+        for grapheme in self.source[..]
+            .graphemes(true)
+            .skip(start)
+            .take(end - start)
+        {
+            if let Some(c) = grapheme.chars().next() {
+                if c == '\t' {
+                    result.push(' ');
+                } else if c.is_ascii_digit() {
+                    result.push_str( c.red().to_string().as_str())
+                }else {
+                    result.push(c)
+                }
+            }
+        }
+
+        result
+    }
+
     /// insert char at target index
     pub fn insert(&mut self, at: usize, c: char) {
         // 在最后插入
@@ -138,31 +163,6 @@ impl Row {
     /// the row is empty?
     pub fn is_empty(&self) -> bool {
         self.len == 0
-    }
-
-    /// render row start to end
-    pub fn render(&self, start: usize, end: usize) -> String {
-        let end = std::cmp::min(end, self.source.len());
-        let start = std::cmp::min(start, end);
-        let mut result = String::new();
-
-        for grapheme in self.source[..]
-            .graphemes(true)
-            .skip(start)
-            .take(end - start)
-        {
-            if let Some(c) = grapheme.chars().next() {
-                if c == '\t' {
-                    result.push(' ');
-                } else if c.is_ascii_digit() {
-                   result.push_str( c.red().to_string().as_str())
-                }else {
-                    result.push(c)
-                }
-            }
-        }
-
-        result
     }
 }
 

@@ -15,6 +15,7 @@ mod document;
 mod editor;
 mod row;
 mod terminal;
+mod highlighting;
 
 fn main() {
     Editor::default().run();
