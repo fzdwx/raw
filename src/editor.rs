@@ -47,11 +47,10 @@ impl Editor {
         let args: Vec<String> = args().collect();
         let mut initial_status = StatusMessage::info_raw("HELP: Ctrl-S = save | Ctrl-Q = quit");
 
-        let document = if args.len() > 1 {
-            let filename = &args[1];
+        let document = if let Some(filename) = args.get(1) {
             let doc = Document::open(filename);
-            if doc.is_ok() {
-                doc.unwrap()
+            if let Ok(doc) = doc {
+                doc
             } else {
                 initial_status = StatusMessage::error(
                     format!("Could not open file {}", filename.clone().green()),
@@ -280,14 +279,14 @@ impl Editor {
             }
             KeyCode::PageUp => {
                 y = if y > terminal_height {
-                    y - terminal_height
+                    y.saturating_sub(terminal_height)
                 } else {
                     0
                 }
             }
             KeyCode::PageDown => {
                 y = if y.saturating_add(terminal_height) < h {
-                    y + terminal_height as usize
+                    y.saturating_add(terminal_height)
                 } else {
                     h
                 }
@@ -311,7 +310,7 @@ impl Editor {
 
         // fix 可以多下一行
         if y == h && h != 0 {
-            y = y - 1
+            y -= 1
         }
 
         self.cursor_position = Position { x, y }
@@ -338,19 +337,23 @@ impl Editor {
         let width = self.terminal.size().width as usize;
 
         let start = self.offset.x;
-        let end = self.offset.x + width;
+        let end = self.offset.x.saturating_add(width);
         let row = row.render(start, end);
         println!("{}\r", row);
     }
 
     /// draw document to terminal
+    #[allow(clippy::integer_division, clippy::integer_arithmetic)]
     fn draw_rows(&self) {
         let height = self.terminal.size().height;
         let x = height / 3;
         for terminal_row in 0..height {
             Terminal::clear_screen_current_line();
 
-            if let Some(row) = self.document.row(terminal_row as usize + self.offset.y) {
+            if let Some(row) = self
+                .document
+                .row(self.offset.y.saturating_add(terminal_row as usize))
+            {
                 self.draw_row(row)
             } else if self.document.is_empty() && terminal_row == x {
                 self.draw_welcome_message();
@@ -389,14 +392,14 @@ impl Editor {
             self.cursor_position.y.saturating_add(1),
             self.document.len()
         );
+
+        #[allow(clippy::integer_arithmetic)]
         let len = status.len() + line_indicator.len();
-        if w > len {
-            status.push_str(&" ".repeat(w - len));
-        }
 
+        status.push_str(&" ".repeat(w.saturating_sub(len)));
         status = format!("{}{}", status, line_indicator);
-
         status.truncate(w);
+
         Terminal::set_bg_color(STATUS_BG_COLOR);
         Terminal::set_fg_color(STATUS_FG_COLOR);
         println!("{}\r", status);
@@ -521,6 +524,7 @@ impl StatusMessage {
 fn format_to_center(mut str: String, size: &Size) -> String {
     let width = size.width as usize;
     let len = str.len();
+    #[allow(clippy::integer_arithmetic, clippy::integer_division)]
     let padding = width.saturating_sub(len) / 2;
     let spaces = " ".repeat(padding.saturating_sub(1));
     str = format!("~{}{}", spaces, str);

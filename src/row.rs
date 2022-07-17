@@ -16,6 +16,7 @@ impl Row {
         }
         let mut result: String = String::new();
         let mut length = 0;
+        #[allow(clippy::integer_arithmetic)]
         for (index, grapheme) in self.source[..].graphemes(true).enumerate() {
             length += 1;
             if index == at {
@@ -29,6 +30,7 @@ impl Row {
     }
 
     /// delete char from target index
+    #[allow(clippy::integer_arithmetic)]
     pub fn delete(&mut self, at: usize) {
         if at >= self.len() {
             return;
@@ -107,7 +109,7 @@ impl Row {
             .take(end - start)
         {
             if grapheme == "\t" {
-                result.push_str(" ");
+                result.push(' ');
             } else {
                 result.push_str(grapheme);
             }
