@@ -1,6 +1,5 @@
 use std::env::args;
 use std::io::Error;
-use std::thread::sleep;
 use std::time::{Duration, Instant};
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
@@ -101,11 +100,6 @@ impl Editor {
 
             if let Err(error) = self.process_event() {
                 die(error);
-            }
-
-            for i in 0..10 {
-                sleep(Duration::from_millis(50));
-                self.replace_and_notify_message(Message::info(format!("hell world- {}", i)));
             }
         }
     }
