@@ -146,6 +146,17 @@ impl Row {
                 };
             }
 
+            if opts.comments() && *c == '/' {
+                if let Some(next_char) = chars.get(index.saturating_add(1)) {
+                    if *next_char == '/' {
+                        for _ in index..chars.len() {
+                            highlighting.push(highlighting::Type::Comment)
+                        }
+                        break;
+                    }
+                }
+            }
+
             if opts.numbers() {
                 if (c.is_ascii_digit()
                     // 前面是分隔符或前面是数字
