@@ -9,11 +9,14 @@ pub struct Row {
 impl Row {
     /// insert char at target index
     pub fn insert(&mut self, at: usize, c: char) {
+        // 在最后插入
         if at >= self.len {
             self.source.push(c);
             self.len += 1;
             return;
         }
+
+        // 在中间某个地方插入
         let mut result: String = String::new();
         let mut length = 0;
         #[allow(clippy::integer_arithmetic)]
@@ -35,6 +38,7 @@ impl Row {
         if at >= self.len() {
             return;
         };
+
         let mut result: String = String::new();
         let mut length = 0;
         for (index, grapheme) in self.source[..].graphemes(true).enumerate() {
@@ -82,11 +86,6 @@ impl Row {
         self.source.as_bytes()
     }
 
-    /// refresh row length
-    pub fn update_len(&mut self) {
-        self.len = self.source[..].graphemes(true).count()
-    }
-
     /// the row length
     pub fn len(&self) -> usize {
         self.len
@@ -121,13 +120,9 @@ impl Row {
 
 impl From<&str> for Row {
     fn from(line: &str) -> Self {
-        let mut row = Self {
+        Self {
             source: String::from(line),
-            len: 0,
-        };
-
-        row.update_len();
-
-        row
+            len: line.graphemes(true).count(),
+        }
     }
 }
