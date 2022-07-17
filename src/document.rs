@@ -45,6 +45,20 @@ impl Document {
         }
     }
 
+    /// from string
+    pub fn with_string(str: String) -> Document {
+        let mut rows = Vec::new();
+        for line in str.lines() {
+            rows.push(Row::from(line))
+        }
+        Self {
+            rows,
+            dirty: false,
+            file_type: FileType::default(),
+            filename: None,
+        }
+    }
+
     /// save file to disk
     pub fn save(&mut self) -> Result<(), Error> {
         if let Some(filename) = &self.filename {
@@ -173,6 +187,10 @@ impl Document {
         for row in self.rows.iter_mut().skip(start) {
             row.is_highlighted = false;
         }
+    }
+
+    pub fn rows(&self) -> &Vec<Row> {
+        &self.rows
     }
 
     /// get row by index

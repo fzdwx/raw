@@ -9,7 +9,7 @@ use crate::document::Document;
 use crate::row::Row;
 use crate::terminal::{Position, Size, Terminal};
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
+const BANNER_WIDTH: usize = 45;
 
 const STATUS_BG_COLOR: Color = Color::Rgb {
     r: 239,
@@ -42,6 +42,8 @@ pub struct Editor {
     offset: Position,
     // curr edit document
     document: Document,
+    // banner
+    banner: Document,
     // status message
     status_message: StatusMessage,
     // check quit times
@@ -71,12 +73,15 @@ impl Editor {
             Document::default()
         };
 
+        let banner = String::from_utf8(include_bytes!("banner").to_vec()).unwrap();
+
         Self {
             should_quit: false,
             terminal: Terminal::default().expect("Failed to initialize terminal"),
             cursor_position: Position::default(),
             offset: Position::default(),
             document,
+            banner: Document::with_string(banner),
             status_message: initial_status,
             quit_times: QUIT_TIMES,
             highlighted_word: None,
@@ -418,7 +423,7 @@ impl Editor {
             {
                 self.draw_row(row)
             } else if self.document.is_empty() && terminal_row == x {
-                self.draw_welcome_message();
+                self.draw_banner();
             } else {
                 println!("~\r");
             }
@@ -482,21 +487,44 @@ impl Editor {
     }
 
     /// write welcome message
-    fn draw_welcome_message(&self) {
-        println!(
-            "{}\r",
-            format_to_center(
-                format!("{} editor -- version {}", "raw".cyan().bold(), VERSION),
-                self.terminal.size()
-            )
-        );
-        println!(
-            "{}\r",
-            format_to_center(
-                format!("{}", "hello world".to_string().red()),
-                self.terminal.size()
-            )
-        );
+    fn draw_banner(&self) {
+        let mut width = self.terminal.size().width as usize;
+        let start = self.offset.x;
+        let end = self.offset.x.saturating_add(width);
+        let padding = width.saturating_sub(BANNER_WIDTH) / 2;
+        let spaces = " ".repeat(padding.saturating_sub(1));
+
+        for row in self.banner.rows() {
+            let mut row = row.render(start, end);
+            row = format!("~{}{}", spaces, row);
+
+            if row.len() > width {
+                while width > 0 {
+                    if row.is_char_boundary(width) {
+                        row.truncate(width);
+
+                        break;
+                    }
+                    width -= 1;
+                }
+            }
+            println!("{}\r", row);
+        }
+
+        // println!(
+        //     "{}\r",
+        //     format_to_center(
+        //         format!("{} editor -- version {}", "raw".cyan().bold(), VERSION),
+        //         self.terminal.size()
+        //     )
+        // );
+        // println!(
+        //     "{}\r",
+        //     format_to_center(
+        //         format!("{}", "hello world".to_string().red()),
+        //         self.terminal.size()
+        //     )
+        // );
     }
 
     // prompt user.
