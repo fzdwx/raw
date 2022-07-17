@@ -70,7 +70,7 @@ impl Row {
         }
 
         let mut index = 0;
-        let mut prev_is_separator = true;
+        let mut prev_is_separator = true; // 为了正确的显示数字(要求数字前面有一个分隔符)
         while let Some(c) = chars.get(index) {
             if let Some(word) = word {
                 if matches.contains(&index) {
@@ -89,8 +89,11 @@ impl Row {
                 &highlighting::Type::None
             };
 
-            if c.is_ascii_digit()
-                && (prev_is_separator || prev_highlight == &highlighting::Type::Number)
+            if (c.is_ascii_digit()
+                // 前面是分隔符或前面是数字
+                && (prev_is_separator || prev_highlight == &highlighting::Type::Number))
+                // 支持小数
+                || (c == &'.' && prev_highlight == &highlighting::Type::Number)
             {
                 h.push(highlighting::Type::Number)
             } else {
