@@ -9,6 +9,7 @@ pub struct FileType {
 pub struct HighlightingOptions {
     numbers: bool,
     strings: bool,
+    characters: bool,
 }
 
 pub enum Name {
@@ -42,6 +43,7 @@ impl FileType {
                 highlight_opts: HighlightingOptions {
                     numbers: true,
                     strings: true,
+                    characters: true,
                 },
             };
         } else if filename.ends_with(".go") {
@@ -50,6 +52,7 @@ impl FileType {
                 highlight_opts: HighlightingOptions {
                     numbers: true,
                     strings: true,
+                    characters: true,
                 },
             };
         } else if filename.ends_with(".java") {
@@ -58,6 +61,7 @@ impl FileType {
                 highlight_opts: HighlightingOptions {
                     numbers: true,
                     strings: true,
+                    characters: true,
                 },
             };
         } else {
@@ -84,6 +88,10 @@ impl HighlightingOptions {
     /// get
     pub fn strings(&self) -> bool {
         self.strings
+    }
+    /// get
+    pub fn characters(&self) -> bool {
+        self.characters
     }
 }
 
