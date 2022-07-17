@@ -23,6 +23,8 @@ const STATUS_FG_COLOR: Color = Color::Rgb {
     b: 63,
 };
 
+const QUIT_TIMES: u8 = 1;
+
 pub struct Editor {
     // quit flag
     should_quit: bool,
@@ -34,14 +36,16 @@ pub struct Editor {
     offset: Position,
     // curr edit document
     document: Document,
+    // status message
     status_message: StatusMessage,
+    quit_times: u8,
 }
 
 impl Editor {
     /// create default Editor
     pub fn default() -> Editor {
         let args: Vec<String> = args().collect();
-        let mut initial_status = String::from("HELP: Ctrl-S = save | Ctrl-Q = quit");
+        let mut initial_status = StatusMessage::info_raw("HELP: Ctrl-S = save | Ctrl-Q = quit");
 
         let document = if args.len() > 1 {
             let filename = &args[1];
@@ -49,7 +53,10 @@ impl Editor {
             if doc.is_ok() {
                 doc.unwrap()
             } else {
-                initial_status = format!("ERR: Could not open file: {}", filename);
+                initial_status = StatusMessage::error(
+                    format!("Could not open file {}", filename.clone().green()),
+                    doc.err().unwrap(),
+                );
                 Document::of(filename)
             }
         } else {
@@ -62,7 +69,8 @@ impl Editor {
             cursor_position: Position::default(),
             offset: Position::default(),
             document,
-            status_message: StatusMessage::from(initial_status),
+            status_message: initial_status,
+            quit_times: QUIT_TIMES,
         }
     }
 
@@ -134,7 +142,15 @@ impl Editor {
         match (key.code, key.modifiers) {
             // handler quit editor
             (KeyCode::Char('q'), KeyModifiers::CONTROL) | (KeyCode::Esc, _) => {
-                self.should_quit = true
+                if self.quit_times > 0 && self.document.is_dirty() {
+                    self.status_message = StatusMessage::warn(format!(
+                        "File has unsaved changes. Press Ctrl-Q {} more times to quit.",
+                        self.quit_times
+                    ));
+                    self.quit_times -= 1;
+                    return;
+                }
+                self.should_quit = true;
             }
 
             (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.save(),
@@ -175,6 +191,10 @@ impl Editor {
         };
 
         self.scroll();
+        if self.quit_times < QUIT_TIMES {
+            self.quit_times = QUIT_TIMES;
+            self.status_message = StatusMessage::default();
+        }
     }
 
     /// save document
@@ -182,7 +202,7 @@ impl Editor {
         if self.document.filename.is_none() {
             let new_name = self.prompt("Save as: ").unwrap_or(None);
             if new_name.is_none() {
-                self.status_message = StatusMessage::from("Save aborted.".to_string());
+                self.status_message = StatusMessage::info_raw("Save aborted.");
                 return;
             }
             self.document.filename = new_name;
@@ -190,11 +210,10 @@ impl Editor {
 
         match self.document.save() {
             Ok(_) => {
-                self.status_message = StatusMessage::from("File saved successfully".to_string());
+                self.status_message = StatusMessage::info_raw("File saved successfully");
             }
             Err(err) => {
-                self.status_message =
-                    StatusMessage::from(format!("Error writing file, cause: {}", err));
+                self.status_message = StatusMessage::error_raw("Writing file fail", err);
             }
         }
     }
@@ -417,28 +436,31 @@ impl Editor {
     fn prompt(&mut self, prompt: &str) -> Result<Option<String>, Error> {
         let mut result = String::new();
         loop {
-            self.status_message = StatusMessage::from(format!("{}{}", prompt, result));
+            self.status_message = StatusMessage::info(format!("{}{}", prompt, result));
             self.refresh_screen()?;
             let event = Terminal::read_event().unwrap();
 
             if let Event::Key(key) = event {
-                match key.code {
-                    KeyCode::Backspace => result.truncate(result.len().saturating_sub(1)),
-                    KeyCode::Enter => break,
-                    KeyCode::Char(c) => {
+                match (key.code, key.modifiers) {
+                    (KeyCode::Backspace, _) => result.truncate(result.len().saturating_sub(1)),
+                    (KeyCode::Enter, _) => break,
+
+                    // over
+                    (KeyCode::Esc, _) | (KeyCode::Char('q'), KeyModifiers::CONTROL) => {
+                        result.truncate(0);
+                        break;
+                    }
+
+                    (KeyCode::Char(c), _) => {
                         if !c.is_control() {
                             result.push(c);
                         }
-                    }
-                    KeyCode::Esc => {
-                        result.truncate(0);
-                        break;
                     }
                     _ => (),
                 }
             }
         }
-        self.status_message = StatusMessage::from(String::new());
+        self.status_message = StatusMessage::default();
         if result.is_empty() {
             return Ok(None);
         }
@@ -457,6 +479,41 @@ impl StatusMessage {
             text: message,
             time: Instant::now(),
         }
+    }
+
+    fn default() -> Self {
+        StatusMessage::from(String::new())
+    }
+
+    fn error(message: String, err: Error) -> Self {
+        StatusMessage::new(
+            "ERROR".red().to_string(),
+            format!("{}. Cause is {}", message, err),
+        )
+    }
+
+    fn warn(message: String) -> Self {
+        StatusMessage::new("WARNING".yellow().to_string(), message)
+    }
+
+    fn info(message: String) -> Self {
+        StatusMessage::new("INFO".green().to_string(), message)
+    }
+
+    fn error_raw(message: &str, err: Error) -> Self {
+        StatusMessage::error(message.to_string(), err)
+    }
+
+    fn warn_raw(message: &str) -> Self {
+        StatusMessage::warn(message.to_string())
+    }
+
+    fn info_raw(message: &str) -> Self {
+        StatusMessage::info(message.to_string())
+    }
+
+    fn new(prefix: String, suffix: String) -> Self {
+        StatusMessage::from(format!("{} {}", prefix, suffix))
     }
 }
 
