@@ -89,6 +89,8 @@ impl Row {
                 self.source[..].grapheme_indices(true).enumerate()
             {
                 if matching_byte_index == byte_index {
+                    // 如果不加query.len 就是跳到第一个单词前面,
+                    // 加了就是跳到最后
                     return Some(grapheme_index + query.len());
                 }
             }

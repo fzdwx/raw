@@ -19,7 +19,7 @@ pub struct Terminal {
 }
 
 /// the cursor position
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Position {
     pub(crate) x: usize,
     pub(crate) y: usize,

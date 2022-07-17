@@ -219,7 +219,10 @@ impl Editor {
         }
     }
 
+    // search some string
     fn search(&mut self) {
+        let old_position = self.cursor_position.clone();
+
         if let Some(query) = self
             .prompt("Search: ", |editor, _, query| {
                 if let Some(position) = editor.document.find(query) {
@@ -234,6 +237,9 @@ impl Editor {
             } else {
                 self.status_message = StatusMessage::warn(format!("Not found \"{}\"", query.red()))
             }
+        } else {
+            self.cursor_position = old_position;
+            self.scroll();
         }
     }
 
