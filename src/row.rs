@@ -89,7 +89,7 @@ impl Row {
                 self.source[..].grapheme_indices(true).enumerate()
             {
                 if matching_byte_index == byte_index {
-                    return Some(grapheme_index);
+                    return Some(grapheme_index + query.len());
                 }
             }
         }

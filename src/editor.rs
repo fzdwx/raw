@@ -201,7 +201,7 @@ impl Editor {
     /// save document
     fn save(&mut self) {
         if self.document.filename.is_none() {
-            let new_name = self.prompt("Save as: ").unwrap_or(None);
+            let new_name = self.prompt("Save as: ", |_, _, _| {}).unwrap_or(None);
             if new_name.is_none() {
                 self.status_message = StatusMessage::info_raw("Save aborted.");
                 return;
@@ -220,7 +220,15 @@ impl Editor {
     }
 
     fn search(&mut self) {
-        if let Some(query) = self.prompt("Search: ").unwrap_or(None) {
+        if let Some(query) = self
+            .prompt("Search: ", |editor, _, query| {
+                if let Some(position) = editor.document.find(query) {
+                    editor.cursor_position = position;
+                    editor.scroll();
+                }
+            })
+            .unwrap_or(None)
+        {
             if let Some(p) = self.document.find(&query[..]) {
                 self.cursor_position = p
             } else {
@@ -448,10 +456,14 @@ impl Editor {
         );
     }
 
-    fn prompt(&mut self, prompt: &str) -> Result<Option<String>, Error> {
+    // prompt user.
+    fn prompt<C>(&mut self, prompt: &str, callback: C) -> Result<Option<String>, Error>
+    where
+        C: Fn(&mut Self, KeyEvent, &String),
+    {
         let mut result = String::new();
         loop {
-            self.status_message = StatusMessage::info(format!("{}{}", prompt, result));
+            self.status_message = StatusMessage::prompt(format!("{}{}", prompt, result));
             self.refresh_screen()?;
             let event = Terminal::read_event().unwrap();
 
@@ -473,6 +485,7 @@ impl Editor {
                     }
                     _ => (),
                 }
+                callback(self, key, &result)
             }
         }
         self.status_message = StatusMessage::default();
@@ -513,6 +526,10 @@ impl StatusMessage {
 
     fn info(message: String) -> Self {
         StatusMessage::new("INFO".green().to_string(), message)
+    }
+
+    fn prompt(message: String) -> Self {
+        StatusMessage::new("PROMPT ".cyan().to_string(), message)
     }
 
     fn error_raw(message: &str, err: Error) -> Self {
