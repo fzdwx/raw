@@ -70,6 +70,7 @@ impl Row {
         }
 
         let mut index = 0;
+        let mut prev_is_separator = true;
         while let Some(c) = chars.get(index) {
             if let Some(word) = word {
                 if matches.contains(&index) {
@@ -81,11 +82,22 @@ impl Row {
                 }
             }
 
-            if c.is_ascii_digit() {
+            let prev_highlight = if index > 0 {
+                #[allow(clippy::integer_arithmetic)]
+                h.get(index - 1).unwrap_or(&highlighting::Type::None)
+            } else {
+                &highlighting::Type::None
+            };
+
+            if c.is_ascii_digit()
+                && (prev_is_separator || prev_highlight == &highlighting::Type::Number)
+            {
                 h.push(highlighting::Type::Number)
             } else {
                 h.push(highlighting::Type::None)
             }
+
+            prev_is_separator = c.is_ascii_punctuation() || c.is_ascii_whitespace();
             index += 1;
         }
 
