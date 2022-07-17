@@ -27,8 +27,8 @@ const QUIT_TIMES: u8 = 1;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum SearchDirection {
-    FORWARD,
-    BACKWARD,
+    Forward,
+    Backward,
 }
 
 pub struct Editor {
@@ -44,7 +44,9 @@ pub struct Editor {
     document: Document,
     // status message
     status_message: StatusMessage,
+    // check quit times
     quit_times: u8,
+    highlighted_word: Option<String>,
 }
 
 impl Editor {
@@ -77,6 +79,7 @@ impl Editor {
             document,
             status_message: initial_status,
             quit_times: QUIT_TIMES,
+            highlighted_word: None,
         }
     }
 
@@ -99,17 +102,26 @@ impl Editor {
     }
 
     /// refresh screen
-    fn refresh_screen(&self) -> std::io::Result<()> {
+    fn refresh_screen(&mut self) -> std::io::Result<()> {
         Terminal::cursor_hide();
-        Terminal::clear_screen_all();
         Terminal::move_to_origin();
 
         if self.check_quit() {
             return Ok(());
         } else {
+            self.document.highlight(
+                &self.highlighted_word,
+                Some(
+                    self.offset
+                        .y
+                        .saturating_add(self.terminal.size().height as usize),
+                ),
+            );
+
             self.draw_rows();
             self.draw_status_bar();
             self.draw_message_bar();
+
             Terminal::move_to(&Position {
                 x: self.cursor_position.x.saturating_sub(self.offset.x),
                 y: self.cursor_position.y.saturating_sub(self.offset.y),
@@ -228,23 +240,23 @@ impl Editor {
     // search some string
     fn search(&mut self) {
         let old_position = self.cursor_position.clone();
-        let mut direction = SearchDirection::FORWARD;
+        let mut direction = SearchDirection::Forward;
         let callback = |editor: &mut Editor, key: KeyEvent, query: &String| {
             let mut moved = false;
             match key.code {
                 KeyCode::Right | KeyCode::Down => {
-                    direction = SearchDirection::FORWARD;
+                    direction = SearchDirection::Forward;
                     editor.move_cursor(KeyCode::Right);
                     moved = true;
                 }
 
-                KeyCode::Left | KeyCode::Up => direction = SearchDirection::BACKWARD,
-                _ => direction = SearchDirection::FORWARD,
+                KeyCode::Left | KeyCode::Up => direction = SearchDirection::Backward,
+                _ => direction = SearchDirection::Forward,
             }
 
             if let Some(position) = editor
                 .document
-                .find(&query, &editor.cursor_position, direction)
+                .find(query, &editor.cursor_position, direction)
             {
                 editor.cursor_position = position;
                 editor.scroll();
@@ -252,7 +264,7 @@ impl Editor {
                 editor.move_cursor(KeyCode::Left)
             }
 
-            editor.document.highlight(Some(query));
+            editor.highlighted_word = Some(query.to_string());
         };
 
         let query = self
@@ -264,7 +276,7 @@ impl Editor {
             self.scroll();
         }
 
-        self.document.highlight(None);
+        self.highlighted_word = None;
     }
 
     /// scroll
@@ -565,10 +577,6 @@ impl StatusMessage {
 
     fn error_raw(message: &str, err: Error) -> Self {
         StatusMessage::error(message.to_string(), err)
-    }
-
-    fn warn_raw(message: &str) -> Self {
-        StatusMessage::warn(message.to_string())
     }
 
     fn info_raw(message: &str) -> Self {

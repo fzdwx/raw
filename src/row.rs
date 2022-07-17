@@ -10,7 +10,8 @@ use crate::highlighting::Type;
 pub struct Row {
     source: String,
     len: usize,
-    highlighting: Vec<highlighting::Type>,
+    highlighting: Vec<Type>,
+    pub is_highlighted: bool,
 }
 
 impl Row {
@@ -19,7 +20,7 @@ impl Row {
         let end = std::cmp::min(end, self.source.len());
         let start = std::cmp::min(start, end);
         let mut result = String::new();
-        let mut current_highlight = &highlighting::Type::None;
+        let mut current_highlight = &Type::None;
 
         for (index, grapheme) in self.source[..]
             .graphemes(true)
@@ -28,10 +29,7 @@ impl Row {
             .take(end - start)
         {
             if let Some(c) = grapheme.chars().next() {
-                let highlight_type = self
-                    .highlighting
-                    .get(index)
-                    .unwrap_or(&highlighting::Type::None);
+                let highlight_type = self.highlighting.get(index).unwrap_or(&Type::None);
 
                 if current_highlight != highlight_type {
                     current_highlight = highlight_type;
@@ -53,12 +51,48 @@ impl Row {
     }
 
     /// highlight current row
-    pub fn highlight(&mut self, opts: &HighlightingOptions, word: Option<&str>) {
-        self.highlighting = Vec::new();
+    pub fn highlight(
+        &mut self,
+        opts: &HighlightingOptions,
+        word: &Option<String>,
+        start_with_comment: bool,
+    ) -> bool {
         let chars: Vec<char> = self.source.chars().collect();
+        if self.is_highlighted && word.is_none() {
+            if let Some(hl_type) = self.highlighting.last() {
+                if *hl_type == Type::MultilineComment
+                    && self.source.len() > 1
+                    && self.source[self.source.len() - 2..] == *"*/"
+                {
+                    return true;
+                };
+            }
+            return false;
+        }
+
+        self.highlighting = Vec::new();
         let mut index = 0;
 
+        let mut in_ml_comment = start_with_comment;
+        if in_ml_comment {
+            let closing_index = if let Some(closing_index) = self.source.find("*/") {
+                closing_index + 2
+            } else {
+                chars.len()
+            };
+            for _ in 0..closing_index {
+                self.highlighting.push(Type::MultilineComment);
+            }
+            index = closing_index;
+        }
+
         while let Some(c) = chars.get(index) {
+            if self.highlight_multiline_comment(&mut index, opts, *c, &chars) {
+                in_ml_comment = true;
+                continue;
+            }
+
+            in_ml_comment = false;
             if self.highlight_char(&mut index, opts, *c, &chars)
                 || self.highlight_comment(&mut index, opts, *c, &chars)
                 || self.highlight_primary_keywords(&mut index, opts, &chars)
@@ -69,11 +103,17 @@ impl Row {
                 continue;
             }
 
-            self.highlighting.push(highlighting::Type::None);
+            self.highlighting.push(Type::None);
             index += 1;
         }
 
         self.highlight_match(word);
+
+        if in_ml_comment && &self.source[self.source.len().saturating_sub(2)..] != "*/" {
+            return true;
+        }
+        self.is_highlighted = true;
+        false
     }
 
     /// insert char at target index
@@ -144,10 +184,12 @@ impl Row {
 
         self.source = row;
         self.len = length;
+        self.is_highlighted = false;
         Self {
             highlighting: Vec::new(),
             source: splitted_row,
             len: splitted_length,
+            is_highlighted: false,
         }
     }
 
@@ -157,13 +199,13 @@ impl Row {
             return None;
         }
 
-        let start = if direction == SearchDirection::FORWARD {
+        let start = if direction == SearchDirection::Forward {
             at
         } else {
             0
         };
 
-        let end = if direction == SearchDirection::FORWARD {
+        let end = if direction == SearchDirection::Forward {
             self.len
         } else {
             at
@@ -175,7 +217,7 @@ impl Row {
             .take(end - start)
             .collect();
 
-        let matching_byte_index = if direction == SearchDirection::FORWARD {
+        let matching_byte_index = if direction == SearchDirection::Forward {
             sub_string.find(query)
         } else {
             sub_string.rfind(query)
@@ -204,10 +246,6 @@ impl Row {
         self.len
     }
 
-    /// the row is empty?
-    pub fn is_empty(&self) -> bool {
-        self.len == 0
-    }
     fn highlight_char(
         &mut self,
         index: &mut usize,
@@ -254,6 +292,33 @@ impl Row {
                 }
             }
         };
+        false
+    }
+    #[allow(clippy::indexing_slicing, clippy::integer_arithmetic)]
+    fn highlight_multiline_comment(
+        &mut self,
+        index: &mut usize,
+        opts: &HighlightingOptions,
+        c: char,
+        chars: &[char],
+    ) -> bool {
+        if opts.multiline_comments() && c == '/' && *index < chars.len() {
+            if let Some(next_char) = chars.get(index.saturating_add(1)) {
+                if *next_char == '*' {
+                    let closing_index =
+                        if let Some(closing_index) = self.source[*index + 2..].find("*/") {
+                            *index + closing_index + 4
+                        } else {
+                            chars.len()
+                        };
+                    for _ in *index..closing_index {
+                        self.highlighting.push(Type::MultilineComment);
+                        *index += 1;
+                    }
+                    return true;
+                }
+            };
+        }
         false
     }
     fn highlight_string(
@@ -371,7 +436,7 @@ impl Row {
     fn highlight_str(
         &mut self,
         index: &mut usize,
-        str: &String,
+        str: &str,
         chars: &[char],
         hl_type: Type,
     ) -> bool {
@@ -396,19 +461,19 @@ impl Row {
 
         true
     }
-    //
-    fn highlight_match(&mut self, word: Option<&str>) {
+    // highlight match word
+    fn highlight_match(&mut self, word: &Option<String>) {
         if let Some(word) = word {
             if word.is_empty() {
                 return;
             }
 
             let mut index = 0;
-            while let Some(search_match) = self.find(word, index, SearchDirection::FORWARD) {
+            while let Some(search_match) = self.find(word, index, SearchDirection::Forward) {
                 if let Some(next_index) = search_match.checked_add(word[..].graphemes(true).count())
                 {
                     for i in search_match..next_index {
-                        self.highlighting[i] = highlighting::Type::Match;
+                        self.highlighting[i] = Type::Match;
                     }
                     index = next_index;
                 } else {
@@ -425,6 +490,7 @@ impl From<&str> for Row {
             source: String::from(line),
             len: line.graphemes(true).count(),
             highlighting: Vec::new(),
+            is_highlighted: false,
         }
     }
 }

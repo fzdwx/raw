@@ -8,6 +8,7 @@ pub enum Type {
     String,
     Character,
     Comment,
+    MultilineComment,
     PrimaryKeywords,
     SecondaryKeywords,
 }
@@ -35,7 +36,7 @@ impl Type {
                 g: 113,
                 b: 196,
             },
-            Type::Comment => Color::Rgb {
+            Type::Comment | Type::MultilineComment => Color::Rgb {
                 r: 133,
                 g: 153,
                 b: 0,

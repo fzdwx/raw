@@ -1,4 +1,4 @@
-use crate::filetype::Name::{GoLang, Java, RUST};
+use crate::filetype::Name::{GoLang, Java, Rust};
 
 pub struct FileType {
     name: String,
@@ -11,12 +11,13 @@ pub struct HighlightingOptions {
     strings: bool,
     characters: bool,
     comments: bool,
+    multiline_comments: bool,
     primary_keywords: Vec<String>,
     secondary_keywords: Vec<String>,
 }
 
 pub enum Name {
-    RUST,
+    Rust,
     GoLang,
     Java,
     Other,
@@ -25,7 +26,7 @@ pub enum Name {
 impl Name {
     pub fn name(&self) -> String {
         match self {
-            RUST => "Rust".to_string(),
+            Rust => "Rust".to_string(),
             GoLang => "Golang".to_string(),
             Java => "Java".to_string(),
             Name::Other => "No FileType".to_string(),
@@ -41,13 +42,14 @@ impl FileType {
         }
 
         if filename.ends_with(".rs") {
-            return Self {
-                name: RUST.name(),
+            Self {
+                name: Rust.name(),
                 highlight_opts: HighlightingOptions {
                     numbers: true,
                     strings: true,
                     characters: true,
                     comments: true,
+                    multiline_comments: true,
                     primary_keywords: vec![
                         "as".to_string(),
                         "break".to_string(),
@@ -117,31 +119,33 @@ impl FileType {
                         "f64".to_string(),
                     ],
                 },
-            };
+            }
         } else if filename.ends_with(".go") {
-            return Self {
+            Self {
                 name: GoLang.name(),
                 highlight_opts: HighlightingOptions {
                     numbers: true,
                     strings: true,
                     characters: true,
                     comments: true,
+                    multiline_comments: true,
                     primary_keywords: vec![],
                     secondary_keywords: vec![],
                 },
-            };
+            }
         } else if filename.ends_with(".java") {
-            return Self {
+            Self {
                 name: Java.name(),
                 highlight_opts: HighlightingOptions {
                     numbers: true,
                     strings: true,
                     characters: true,
                     comments: true,
+                    multiline_comments: true,
                     primary_keywords: vec![],
                     secondary_keywords: vec![],
                 },
-            };
+            }
         } else {
             Self::default()
         }
@@ -182,6 +186,10 @@ impl HighlightingOptions {
     /// get
     pub fn secondary_keywords(&self) -> &Vec<String> {
         &self.secondary_keywords
+    }
+    /// get
+    pub fn multiline_comments(&self) -> bool {
+        self.multiline_comments
     }
 }
 
