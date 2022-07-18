@@ -75,7 +75,7 @@ impl Editor {
 
         Self {
             should_quit: false,
-            terminal: Terminal::default().expect("Failed to initialize terminal"),
+            terminal: Terminal::new("raw editor").expect("Failed to initialize terminal"),
             cursor_position: Position::default(),
             offset: Position::default(),
             document,
@@ -91,7 +91,7 @@ impl Editor {
         // loop
         loop {
             if let Err(error) = self.refresh_screen() {
-                die(&error);
+                die(self.terminal, &error);
             };
 
             if self.check_quit() {
@@ -99,27 +99,15 @@ impl Editor {
             }
 
             if let Err(error) = self.process_event() {
-                die(&error);
+                die(self.terminal, &error);
             }
         }
     }
 
-    /// show message to message bar
-    pub fn notify_message(&self, message: Message) {
-        self.draw_message_bar(message);
-        Terminal::flush().unwrap();
-    }
-
-    /// show status message
-    pub fn status_message(&self, message: String) {
-        self.draw_status_bar(message);
-        Terminal::flush().unwrap();
-    }
-
     /// refresh screen
     fn refresh_screen(&mut self) -> std::io::Result<()> {
-        Terminal::cursor_hide();
-        Terminal::move_to_origin();
+        self.terminal.cursor_hide();
+        self.terminal.move_to_origin();
 
         if self.check_quit() {
             return Ok(());
@@ -137,14 +125,14 @@ impl Editor {
             self.draw_default_status_bar();
             self.draw_message_bar(self.message.clone());
 
-            Terminal::move_to(&Position {
+            self.terminal.move_to(&Position {
                 x: self.cursor_position.x.saturating_sub(self.offset.x),
                 y: self.cursor_position.y.saturating_sub(self.offset.y),
             });
         }
 
-        Terminal::cursor_show();
-        Terminal::flush()
+        self.terminal.cursor_show();
+        self.terminal.flush()
     }
 
     /// read event and process event
@@ -154,8 +142,8 @@ impl Editor {
                 match event {
                     Event::Key(input_key) => self.process_keypress(input_key),
 
-                    Event::Mouse(_) => {
-                        println!("{:?}", event);
+                    Event::Mouse(_m) => {
+                        self.notify_message(Message::info_raw("122222222222222222"));
                     }
 
                     Event::Resize(width, height) => {
@@ -177,6 +165,18 @@ impl Editor {
         };
     }
 
+    /// show message to message bar
+    pub fn notify_message(&self, message: Message) {
+        self.draw_message_bar(message);
+        self.terminal.flush().unwrap();
+    }
+
+    /// show status message
+    pub fn status_message(&self, message: String) {
+        self.draw_status_bar(message);
+        self.terminal.flush().unwrap();
+    }
+
     /// process key event.
     fn process_keypress(&mut self, key: KeyEvent) {
         match (key.code, key.modifiers) {
@@ -195,12 +195,6 @@ impl Editor {
 
             (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.save(),
             (KeyCode::Char('f'), KeyModifiers::CONTROL) => self.search(),
-
-            // add char
-            (KeyCode::Char(c), _) => {
-                self.document.insert(&self.cursor_position, c);
-                self.move_cursor(KeyCode::Right);
-            }
 
             // delete
             (KeyCode::Delete, _) => self.document.delete(&self.cursor_position),
@@ -226,6 +220,12 @@ impl Editor {
             | (KeyCode::PageDown, _)
             | (KeyCode::End, _)
             | (KeyCode::Home, _) => self.move_cursor(key.code),
+
+            // add char
+            (KeyCode::Char(c), _) => {
+                self.document.insert(&self.cursor_position, c);
+                self.move_cursor(KeyCode::Right);
+            }
 
             // discard
             _ => {}
@@ -404,14 +404,14 @@ impl Editor {
     pub fn check_quit(&self) -> bool {
         match self.should_quit {
             true => {
-                Terminal::reset_bg_color();
-                Terminal::reset_fg_color();
-                Terminal::clear_screen_all();
+                self.terminal.reset_bg_color();
+                self.terminal.reset_fg_color();
+                self.terminal.clear_screen_all();
                 println!("bye!\r");
 
-                Terminal::cursor_show();
-                Terminal::disable_raw_mode();
-                Terminal::flush().ok();
+                self.terminal.cursor_show();
+                self.terminal.disable_raw_mode();
+                self.terminal.flush().ok();
             }
             false => {}
         }
@@ -425,7 +425,7 @@ impl Editor {
         let height = self.terminal.size().height;
         let x = height / 3;
         for terminal_row in 0..height {
-            Terminal::clear_screen_current_line();
+            self.terminal.clear_screen_current_line();
 
             if let Some(row) = self
                 .document
@@ -493,26 +493,26 @@ impl Editor {
 
     /// draw status bar
     fn draw_status_bar(&self, message: String) {
-        Terminal::move_to(&Position {
+        self.terminal.move_to(&Position {
             x: 0,
             y: (self.terminal.size().height) as usize,
         });
-        Terminal::clear_screen_current_line();
+        self.terminal.clear_screen_current_line();
 
-        Terminal::set_bg_color(STATUS_BG_COLOR);
-        Terminal::set_fg_color(STATUS_FG_COLOR);
+        self.terminal.set_bg_color(STATUS_BG_COLOR);
+        self.terminal.set_fg_color(STATUS_FG_COLOR);
         println!("{}\r", message);
-        Terminal::reset_fg_color();
-        Terminal::reset_bg_color();
+        self.terminal.reset_fg_color();
+        self.terminal.reset_bg_color();
     }
 
     /// draw message bar
     fn draw_message_bar(&self, message: Message) {
-        Terminal::move_to(&Position {
+        self.terminal.move_to(&Position {
             x: 0,
             y: (self.terminal.size().height + 1) as usize,
         });
-        Terminal::clear_screen_current_line();
+        self.terminal.clear_screen_current_line();
 
         if Instant::now() - message.time < Duration::new(5, 0) {
             let mut text = message.text;
@@ -645,7 +645,7 @@ impl Message {
 }
 
 /// handle error
-fn die(e: &Error) {
-    Terminal::clear_screen_all();
+fn die(terminal: Terminal, e: &Error) {
+    terminal.clear_screen_all();
     panic!("{}", e);
 }
