@@ -3,8 +3,6 @@
 //!
 //! is a rust editor. it is based [hecto](https://www.philippflenker.com/hecto/).
 //!
-pub use crate::{
-
-};
 
 pub mod filetype;
+pub mod terminal;

@@ -91,7 +91,7 @@ impl Editor {
         // loop
         loop {
             if let Err(error) = self.refresh_screen() {
-                die(self.terminal, &error);
+                self.die(&error);
             };
 
             if self.check_quit() {
@@ -99,14 +99,14 @@ impl Editor {
             }
 
             if let Err(error) = self.process_event() {
-                die(self.terminal, &error);
+                self.die(&error);
             }
         }
     }
 
     /// refresh screen
     fn refresh_screen(&mut self) -> std::io::Result<()> {
-        self.terminal.cursor_hide();
+        self.terminal.hide_cursor();
         self.terminal.move_to_origin();
 
         if self.check_quit() {
@@ -131,7 +131,7 @@ impl Editor {
             });
         }
 
-        self.terminal.cursor_show();
+        self.terminal.show_cursor();
         self.terminal.flush()
     }
 
@@ -173,7 +173,7 @@ impl Editor {
     }
 
     /// show status message
-    pub fn status_message(&self, message: String) {
+    pub fn status_message(&mut self, message: String) {
         self.draw_status_bar(message);
         self.terminal.flush().unwrap();
     }
@@ -402,7 +402,7 @@ impl Editor {
     }
 
     /// Confirm whether you need to exit the editor.
-    pub fn check_quit(&self) -> bool {
+    pub fn check_quit(&mut self) -> bool {
         match self.should_quit {
             true => {
                 self.terminal.reset_bg_color();
@@ -410,8 +410,8 @@ impl Editor {
                 self.terminal.clear_screen_all();
                 println!("bye!\r");
 
-                self.terminal.cursor_show();
-                self.terminal.disable_raw_mode();
+                self.terminal.show_cursor();
+                self.terminal.disable_raw_mode().ok();
                 self.terminal.flush().ok();
             }
             false => {}
@@ -452,7 +452,7 @@ impl Editor {
     }
 
     /// draw default status bar
-    fn draw_default_status_bar(&self) {
+    fn draw_default_status_bar(&mut self) {
         let mut status;
         let w = self.terminal.size().width as usize;
 
@@ -586,6 +586,11 @@ impl Editor {
         }
         Ok(Some(result))
     }
+
+    fn die(&self, e: &Error) {
+        self.terminal.clear_screen_all();
+        panic!("{}", e);
+    }
 }
 
 #[derive(Clone)]
@@ -640,10 +645,4 @@ impl Message {
     fn new(prefix: String, suffix: String) -> Self {
         Message::from(format!("{} {}", prefix, suffix))
     }
-}
-
-/// handle error
-fn die(terminal: Terminal, e: &Error) {
-    terminal.clear_screen_all();
-    panic!("{}", e);
 }

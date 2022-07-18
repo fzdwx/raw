@@ -1,9 +1,11 @@
-use std::io::{stdout, Error, Write};
+use std::io::{stdout, Error, Stdout};
 
+use crossterm::cursor::{MoveTo, MoveToColumn};
 use crossterm::event::Event;
 use crossterm::style::Color;
 use crossterm::terminal::{Clear, ClearType};
 use crossterm::{style, Command, ErrorKind, ExecutableCommand, QueueableCommand};
+use tui::backend::CrosstermBackend;
 
 const ORIGIN: Position = Position { x: 0, y: 0 };
 
@@ -15,25 +17,27 @@ pub struct Size {
 }
 
 /// the terminal
-#[derive(Copy, Clone)]
 pub struct Terminal {
     size: Size,
+    pub tui_terminal: tui::Terminal<CrosstermBackend<Stdout>>,
 }
 
 /// the cursor position
 #[derive(Default, Clone)]
 pub struct Position {
-    pub(crate) x: usize,
-    pub(crate) y: usize,
+    pub x: usize,
+    pub y: usize,
 }
 
 impl Terminal {
     pub fn new(title: &str) -> Result<Terminal, ErrorKind> {
         let size = crossterm::terminal::size().unwrap();
+        crossterm::terminal::enable_raw_mode()?;
 
-        match crossterm::terminal::enable_raw_mode() {
-            Ok(_) => {
+        match tui::Terminal::new(CrosstermBackend::new(stdout())) {
+            Ok(t) => {
                 let mut t = Self {
+                    tui_terminal: t,
                     size: Size {
                         width: size.0,
                         height: size.1.saturating_sub(2),
@@ -66,8 +70,8 @@ impl Terminal {
     }
 
     /// flush Terminal buffers
-    pub fn flush(&self) -> Result<(), Error> {
-        stdout().flush()
+    pub fn flush(&mut self) -> std::io::Result<()> {
+        self.tui_terminal.flush()
     }
 
     /// refresh title.
@@ -76,18 +80,19 @@ impl Terminal {
     }
 
     /// disable raw mode
-    pub fn disable_raw_mode(&self) {
-        crossterm::terminal::disable_raw_mode().ok();
+    pub fn disable_raw_mode(&self) -> crossterm::Result<()> {
+        crossterm::terminal::disable_raw_mode()
     }
 
     /// get current cursor position
-    pub fn position(&self) -> (u16, u16) {
-        crossterm::cursor::position().unwrap()
+    pub fn position(&mut self) {
+        self.tui_terminal.get_cursor().ok();
     }
 
     /// resize terminal
     pub fn resize(&mut self, width: u16, height: u16) {
-        self.size = Size { width, height }
+        self.size = Size { width, height };
+        self.tui_terminal.autoresize().ok();
     }
 
     /// read event. blocks until get event.
@@ -131,24 +136,23 @@ impl Terminal {
     }
 
     /// hide cursor
-    pub fn cursor_hide(&self) {
-        self.queue(crossterm::cursor::Hide).ok();
+    pub fn hide_cursor(&mut self) {
+        self.tui_terminal.hide_cursor().ok();
     }
 
     /// show cursor
-    pub fn cursor_show(&self) {
-        self.queue(crossterm::cursor::Show).ok();
+    pub fn show_cursor(&mut self) {
+        self.tui_terminal.show_cursor().ok();
     }
 
     /// moves the terminal cursor to the given position (column, row).
     pub fn move_to(&self, p: &Position) {
-        self.queue(crossterm::cursor::MoveTo(p.x as u16, p.y as u16))
-            .ok();
+        self.queue(MoveTo(p.x as u16, p.y as u16)).ok();
     }
 
     ///  moves the terminal cursor to the given column on the current row.
     pub fn move_to_column(&self, col: u16) {
-        self.queue(crossterm::cursor::MoveToColumn(col)).ok();
+        self.queue(MoveToColumn(col)).ok();
     }
 
     /// moves the terminal cursor to the origin.
