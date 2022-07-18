@@ -80,6 +80,11 @@ impl Terminal {
         crossterm::terminal::disable_raw_mode().ok();
     }
 
+    /// get current cursor position
+    pub fn position(&self) -> (u16, u16) {
+        crossterm::cursor::position().unwrap()
+    }
+
     /// resize terminal
     pub fn resize(&mut self, width: u16, height: u16) {
         self.size = Size { width, height }

@@ -123,7 +123,7 @@ impl Editor {
 
             self.draw_rows();
             self.draw_default_status_bar();
-            self.draw_message_bar(self.message.clone());
+            self.draw_message_bar();
 
             self.terminal.move_to(&Position {
                 x: self.cursor_position.x.saturating_sub(self.offset.x),
@@ -147,7 +147,7 @@ impl Editor {
                     }
 
                     Event::Resize(width, height) => {
-                        self.replace_and_notify_message(Message::info(format!(
+                        self.notify_message(Message::info(format!(
                             "{},{} -> {},{}",
                             self.terminal.size().width,
                             self.terminal.size().height,
@@ -165,9 +165,10 @@ impl Editor {
         };
     }
 
-    /// show message to message bar
-    pub fn notify_message(&self, message: Message) {
-        self.draw_message_bar(message);
+    ///  show message to message bar
+    fn notify_message(&mut self, message: Message) {
+        self.message = message;
+        self.draw_message_bar();
         self.terminal.flush().unwrap();
     }
 
@@ -183,7 +184,7 @@ impl Editor {
             // handler quit editor
             (KeyCode::Char('q'), KeyModifiers::CONTROL) | (KeyCode::Esc, _) => {
                 if self.quit_times > 0 && self.document.is_dirty() {
-                    self.replace_and_notify_message(Message::warn(format!(
+                    self.notify_message(Message::warn(format!(
                         "File has unsaved changes. Press Ctrl-Q {} more times to quit.",
                         self.quit_times
                     )));
@@ -234,7 +235,7 @@ impl Editor {
         self.scroll();
         if self.quit_times < QUIT_TIMES {
             self.quit_times = QUIT_TIMES;
-            self.replace_and_notify_message(Message::default());
+            self.notify_message(Message::default());
         }
     }
 
@@ -243,7 +244,7 @@ impl Editor {
         if self.document.filename.is_none() {
             let new_name = self.prompt("Save as: ", |_, _, _| {}).unwrap_or(None);
             if new_name.is_none() {
-                self.replace_and_notify_message(Message::info_raw("Save aborted."));
+                self.notify_message(Message::info_raw("Save aborted."));
                 return;
             };
             self.document.filename = new_name;
@@ -251,10 +252,10 @@ impl Editor {
 
         match self.document.save() {
             Ok(_) => {
-                self.replace_and_notify_message(Message::info_raw("File saved successfully"));
+                self.notify_message(Message::info_raw("File saved successfully"));
             }
             Err(err) => {
-                self.replace_and_notify_message(Message::error_raw("Writing file fail", err));
+                self.notify_message(Message::error_raw("Writing file fail", err));
             }
         }
     }
@@ -507,15 +508,15 @@ impl Editor {
     }
 
     /// draw message bar
-    fn draw_message_bar(&self, message: Message) {
+    fn draw_message_bar(&self) {
         self.terminal.move_to(&Position {
             x: 0,
             y: (self.terminal.size().height + 1) as usize,
         });
         self.terminal.clear_screen_current_line();
 
-        if Instant::now() - message.time < Duration::new(5, 0) {
-            let mut text = message.text;
+        if Instant::now() - self.message.time < Duration::new(5, 0) {
+            let mut text = self.message.text();
             text.truncate(self.terminal.size().width as usize);
             print!("{}", text);
         }
@@ -554,7 +555,7 @@ impl Editor {
     {
         let mut result = String::new();
         loop {
-            self.replace_and_notify_message(Message::prompt(format!("{}{}", prompt, result)));
+            self.notify_message(Message::prompt(format!("{}{}", prompt, result)));
             self.refresh_screen()?;
             let event = self.terminal.read_event().unwrap();
 
@@ -579,18 +580,11 @@ impl Editor {
                 callback(self, key, &result)
             }
         }
-        self.replace_and_notify_message(Message::default());
+        self.notify_message(Message::default());
         if result.is_empty() {
             return Ok(None);
         }
         Ok(Some(result))
-    }
-
-    /// replace and notify message.
-    fn replace_and_notify_message(&mut self, message: Message) {
-        let message_clone = message.clone();
-        self.message = message;
-        self.notify_message(message_clone);
     }
 }
 
@@ -606,6 +600,10 @@ impl Message {
             text: message,
             time: Instant::now(),
         }
+    }
+
+    fn text(&self) -> String {
+        self.text.clone()
     }
 
     fn default() -> Self {
