@@ -3,3 +3,5 @@
 //!
 //! is a rust editor. it is based [hecto](https://www.philippflenker.com/hecto/).
 //!
+pub mod app;
+pub mod terminal;
