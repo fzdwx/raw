@@ -1,7 +1,10 @@
 use crate::terminal::Terminal;
 use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
-use std::io::Error;
+use std::io::{Error, Stdout};
 use std::time::Duration;
+use tui::backend::CrosstermBackend;
+use tui::widgets::Block;
+use tui::Frame;
 
 /// the 'raw' application.
 pub struct App {
@@ -22,6 +25,8 @@ impl App {
     /// run editor
     pub fn run(&mut self) {
         loop {
+            self.ui();
+
             if let Err(error) = self.process_event() {
                 self.die(&error);
             }
@@ -30,6 +35,16 @@ impl App {
                 break;
             }
         }
+    }
+
+    fn ui(&mut self) {
+        let f = |f: &mut Frame<CrosstermBackend<Stdout>>| {
+            f.render_widget(Block::default().title("hello world"), f.size());
+            f.set_cursor(0, 0);
+        };
+
+        let result = self.terminal.draw(f);
+        self.terminal.show_cursor().expect("");
     }
 
     /// process user events.
@@ -56,6 +71,16 @@ impl App {
             (KeyCode::Char('q'), KeyModifiers::CONTROL) | (KeyCode::Esc, _) => {
                 self.should_quit = true;
             }
+            // (KeyCode::Right, _) => {
+            //     self.index = (self.index + 1) % self.titles.len();
+            // }
+            // (KeyCode::Left, _) => {
+            //     if self.index > 0 {
+            //         self.index -= 1;
+            //     } else {
+            //         self.index = self.titles.len() - 1;
+            //     }
+            // }
             // discard
             _ => {}
         };
@@ -71,8 +96,9 @@ impl App {
     }
 
     /// process resize events.
-    fn process_resize(&self, event: Event) {
+    fn process_resize(&mut self, event: Event) {
         let (original_size, new_size) = self.flush_resize_events(event);
+        self.terminal.resize();
         println!("Resize from: {:?}, to: {:?}", original_size, new_size);
     }
 

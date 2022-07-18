@@ -17,12 +17,6 @@ pub struct Terminal {
 }
 
 impl Terminal {
-    pub(crate) fn clear_all(&mut self) -> io::Result<()> {
-        self.internal_terminal.clear()
-    }
-}
-
-impl Terminal {
     pub fn new() -> Self {
         let internal_terminal = Terminal::new_internal_terminal();
         let size = internal_terminal.size().unwrap();
@@ -55,13 +49,34 @@ impl Terminal {
         self.internal_terminal.set_cursor(x, y)
     }
 
+    /// resize terminal.
+    pub fn resize(&mut self) {
+        self.internal_terminal
+            .autoresize()
+            .expect("terminal resize error");
+        self.size = self
+            .internal_terminal
+            .size()
+            .expect("terminal get size error");
+    }
+
+    /// get
+    pub fn size(&self) -> Rect {
+        self.size
+    }
+
+    /// clear all buffers.
+    pub fn clear_all(&mut self) -> io::Result<()> {
+        self.internal_terminal.clear()
+    }
+
     /// show cursor
-    fn show_cursor(&mut self) -> io::Result<()> {
+    pub fn show_cursor(&mut self) -> io::Result<()> {
         self.internal_terminal.show_cursor()
     }
 
     /// hide cursor
-    fn hide_cursor(&mut self) -> io::Result<()> {
+    pub fn hide_cursor(&mut self) -> io::Result<()> {
         self.internal_terminal.hide_cursor()
     }
 
