@@ -91,7 +91,7 @@ impl Editor {
         // loop
         loop {
             if let Err(error) = self.refresh_screen() {
-                die(error);
+                die(&error);
             };
 
             if self.check_quit() {
@@ -99,7 +99,7 @@ impl Editor {
             }
 
             if let Err(error) = self.process_event() {
-                die(error);
+                die(&error);
             }
         }
     }
@@ -488,7 +488,7 @@ impl Editor {
         status = format!("{}{}", status, line_indicator);
         status.truncate(w);
 
-        self.draw_status_bar(status);
+        self.status_message(status);
     }
 
     /// draw status bar
@@ -515,7 +515,7 @@ impl Editor {
         Terminal::clear_screen_current_line();
 
         if Instant::now() - message.time < Duration::new(5, 0) {
-            let mut text = message.text.clone();
+            let mut text = message.text;
             text.truncate(self.terminal.size().width as usize);
             print!("{}", text);
         }
@@ -645,7 +645,7 @@ impl Message {
 }
 
 /// handle error
-fn die(e: Error) {
+fn die(e: &Error) {
     Terminal::clear_screen_all();
     panic!("{}", e);
 }

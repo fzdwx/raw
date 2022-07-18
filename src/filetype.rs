@@ -35,13 +35,13 @@ impl Name {
 }
 
 impl FileType {
-    /// create [FileType] by filename
+    /// create [`FileType`] by filename
     pub fn from(filename: &str) -> Self {
         if filename.is_empty() {
             return Self::default();
         }
 
-        if filename.ends_with(".rs") {
+        if filename.is_xxx_file("rs") {
             Self {
                 name: Rust.name(),
                 highlight_opts: HighlightingOptions {
@@ -120,7 +120,7 @@ impl FileType {
                     ],
                 },
             }
-        } else if filename.ends_with(".go") {
+        } else if filename.is_xxx_file("go") {
             Self {
                 name: GoLang.name(),
                 highlight_opts: HighlightingOptions {
@@ -133,7 +133,7 @@ impl FileType {
                     secondary_keywords: vec![],
                 },
             }
-        } else if filename.ends_with(".java") {
+        } else if filename.is_xxx_file("java") {
             Self {
                 name: Java.name(),
                 highlight_opts: HighlightingOptions {
@@ -200,4 +200,24 @@ impl Default for FileType {
             highlight_opts: HighlightingOptions::default(),
         }
     }
+}
+
+pub trait FileTypeChecker {
+    fn is_xxx_file(&self, file_extension_name: &str) -> bool;
+}
+
+impl FileTypeChecker for &str {
+    fn is_xxx_file(&self, file_extension_name: &str) -> bool {
+        is_xxx_file(self, file_extension_name)
+    }
+}
+
+impl FileTypeChecker for String {
+    fn is_xxx_file(&self, file_extension_name: &str) -> bool {
+        is_xxx_file(self, file_extension_name)
+    }
+}
+
+fn is_xxx_file(filename: &str, file_extension_name: &str) -> bool {
+    filename.rsplit('.').next().map(|ext| ext.eq_ignore_ascii_case(file_extension_name)) == Some(true)
 }

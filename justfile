@@ -3,7 +3,7 @@
 run:
    cargo run
 
-# install raw editor
+# install raw editor in linux.
 install:
     sudo cp just /usr/local/bin/just
     cargo build --release
@@ -11,6 +11,9 @@ install:
 
 release:
   cargo build --release    
+
+test:
+  cargo test
 
 # lint 普通模式
 lint:
