@@ -1,31 +1,41 @@
+use crate::buffer::banner::BannerDocument;
+use crate::buffer::Buffered;
 use crate::terminal::Terminal;
 use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
-use std::io::{Error, Stdout};
+use std::io::Error;
 use std::time::Duration;
-use tui::backend::CrosstermBackend;
-use tui::widgets::Block;
-use tui::Frame;
+use tui::terminal::CompletedFrame;
 
 /// the 'raw' application.
 pub struct App {
+    // the terminal helper.
     terminal: Terminal,
+    // if is true,then exit app.
     should_quit: bool,
+    // the banner buffer
+    banner: BannerDocument,
+    // mouse event, reduce the occurrence of resize events
     mouse_event: Option<MouseEvent>,
 }
 
-impl App {
-    pub fn new() -> Self {
+impl Default for App {
+    fn default() -> Self {
         Self {
-            terminal: Terminal::new(),
+            terminal: Terminal::default(),
             should_quit: false,
+            banner: BannerDocument::default(),
             mouse_event: None,
         }
     }
+}
 
+impl App {
     /// run editor
     pub fn run(&mut self) {
         loop {
-            self.ui();
+            if let Err(error) = self.ui() {
+                self.die(&error);
+            }
 
             if let Err(error) = self.process_event() {
                 self.die(&error);
@@ -37,19 +47,13 @@ impl App {
         }
     }
 
-    fn ui(&mut self) {
-        let f = |f: &mut Frame<CrosstermBackend<Stdout>>| {
-            f.render_widget(Block::default().title("hello world"), f.size());
-            f.set_cursor(0, 0);
-        };
-
-        let result = self.terminal.draw(f);
-        self.terminal.show_cursor().expect("");
+    fn ui(&mut self) -> std::io::Result<CompletedFrame> {
+        self.terminal.draw(|frame| self.banner.draw(frame))
     }
 
     /// process user events.
     fn process_event(&mut self) -> Result<(), Error> {
-        return match self.terminal.read() {
+        match self.terminal.read() {
             Ok(event) => {
                 match event {
                     Event::Key(input_key) => self.process_keypress(input_key),
@@ -61,7 +65,7 @@ impl App {
                 Ok(())
             }
             Err(err) => Err(err),
-        };
+        }
     }
 
     /// process keypress event.
@@ -92,14 +96,14 @@ impl App {
             return;
         }
 
-        println!("mouse moved: {:?}", mouse);
+        // println!("mouse moved: {:?}", mouse);
     }
 
     /// process resize events.
     fn process_resize(&mut self, event: Event) {
         let (original_size, new_size) = self.flush_resize_events(event);
         self.terminal.resize();
-        println!("Resize from: {:?}, to: {:?}", original_size, new_size);
+        // println!("Resize from: {:?}, to: {:?}", original_size, new_size);
     }
 
     /// Resize events can occur in batches.
@@ -125,7 +129,7 @@ impl App {
     ///
     /// So the judgment is discarded if it is the same as the last mouse movement event.
     fn should_discard_mouse_move_event(&mut self, mouse: MouseEvent) -> bool {
-        return match self.mouse_event {
+        match self.mouse_event {
             None => {
                 self.mouse_event = Some(mouse);
 
@@ -139,7 +143,7 @@ impl App {
                 self.mouse_event = Some(mouse);
                 false
             }
-        };
+        }
     }
 
     /// if should quit do terminal destroy

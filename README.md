@@ -1,5 +1,5 @@
 # raw
 
-raw is a rust text editor. it is based [hecto](https://www.philippflenker.com/hecto/).
+raw is a text editor written in rust, it's still pretty rudimentary.
 
-![image](https://user-images.githubusercontent.com/65269574/179395544-5fbbf31a-fab7-4b0e-9558-470988e04cee.png)
+![image](https://user-images.githubusercontent.com/65269574/179541542-99fc48be-3501-418d-bb62-829d56dddcb1.png)

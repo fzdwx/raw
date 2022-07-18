@@ -10,12 +10,7 @@
 extern crate core;
 
 use raw::app::App;
-use raw::terminal::Terminal;
-use std::io;
-use std::thread::sleep;
-use std::time::Duration;
-use tui::widgets::{Block, Borders};
 
 fn main() {
-    App::new().run()
+    App::default().run()
 }

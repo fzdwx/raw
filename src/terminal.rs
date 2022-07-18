@@ -16,8 +16,8 @@ pub struct Terminal {
     internal_terminal: tui::Terminal<CrosstermBackend<Stdout>>,
 }
 
-impl Terminal {
-    pub fn new() -> Self {
+impl Default for Terminal {
+    fn default() -> Self {
         let internal_terminal = Terminal::new_internal_terminal();
         let size = internal_terminal.size().unwrap();
 
@@ -29,7 +29,9 @@ impl Terminal {
         terminal.prepare();
         terminal
     }
+}
 
+impl Terminal {
     /// Synchronizes terminal size, calls the rendering closure, flushes the current internal state
     /// and prepares for the next draw call.
     pub fn draw<F>(&mut self, f: F) -> io::Result<CompletedFrame>
@@ -83,8 +85,7 @@ impl Terminal {
     /// new internal terminal.
     fn new_internal_terminal() -> tui::Terminal<CrosstermBackend<Stdout>> {
         let backend = CrosstermBackend::new(stdout());
-        let terminal = tui::Terminal::new(backend).unwrap();
-        terminal
+        tui::Terminal::new(backend).unwrap()
     }
 
     fn prepare(&mut self) {
