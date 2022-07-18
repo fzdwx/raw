@@ -1,9 +1,9 @@
 use std::io::{stdout, Error, Stdout};
 
 use crossterm::cursor::{MoveTo, MoveToColumn};
-use crossterm::event::Event;
+use crossterm::event::{DisableMouseCapture, EnableMouseCapture, Event};
 use crossterm::style::Color;
-use crossterm::terminal::{Clear, ClearType};
+use crossterm::terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::{style, Command, ErrorKind, ExecutableCommand, QueueableCommand};
 use tui::backend::CrosstermBackend;
 
@@ -44,6 +44,8 @@ impl Terminal {
                     },
                 };
 
+                t.execute(EnterAlternateScreen)?;
+                t.execute(EnableMouseCapture)?;
                 t.refresh_title(title);
 
                 Ok(t)
@@ -51,6 +53,13 @@ impl Terminal {
 
             Err(err) => Err(err),
         }
+    }
+
+    pub fn over(&self) {
+        self.clear_screen_all();
+        self.disable_raw_mode()?;
+        self.execute(LeaveAlternateScreen)?;
+        self.execute(DisableMouseCapture)?;
     }
 
     /// add command to execute queue.
@@ -72,6 +81,11 @@ impl Terminal {
     /// flush Terminal buffers
     pub fn flush(&mut self) -> std::io::Result<()> {
         self.tui_terminal.flush()
+    }
+
+    pub fn die(&self, e: &Error) {
+        self.over();
+        panic!("{}", e);
     }
 
     /// refresh title.

@@ -71,7 +71,7 @@ impl Editor {
             Document::default()
         };
 
-        let banner = String::from_utf8(include_bytes!("banner").to_vec()).unwrap();
+        let banner = String::from_utf8(include_bytes!("../banner").to_vec()).unwrap();
 
         Self {
             should_quit: false,
@@ -588,8 +588,7 @@ impl Editor {
     }
 
     fn die(&self, e: &Error) {
-        self.terminal.clear_screen_all();
-        panic!("{}", e);
+        self.terminal.die(e);
     }
 }
 

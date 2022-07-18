@@ -9,15 +9,4 @@
 )]
 extern crate core;
 
-use crate::editor::Editor;
-
-mod document;
-mod editor;
-mod filetype;
-mod highlighting;
-mod row;
-mod terminal;
-
-fn main() {
-    Editor::default().run();
-}
+fn main() {}
