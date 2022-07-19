@@ -20,7 +20,7 @@ pub struct BannerBuffer {
 
 impl BannerBuffer {
     pub fn default() -> Self {
-        let contents = fs::read_to_string("./src/banner").expect("open banner file fail!");
+        let contents = String::from_utf8(include_bytes!("../banner").to_vec()).unwrap();
 
         let mut rows = Vec::new();
         let mut max_size: usize = 0;

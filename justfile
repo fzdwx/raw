@@ -3,8 +3,11 @@
 run:
    cargo run
 
-run-m:
+rm:
    cargo run README.md justfile
+
+rb:
+    ./target/release/raw
 
 # install raw editor in linux.
 install:

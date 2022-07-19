@@ -4,6 +4,7 @@ use crate::buffer::text::TextBufferContainer;
 use crate::buffer::Buffered;
 use crate::tui::Tui;
 use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
+use std::fs;
 use std::io::Error;
 use std::thread::Thread;
 use std::time::Duration;
@@ -28,6 +29,7 @@ impl Default for App {
 
         text_container.load(args.filenames);
 
+        let x = include_bytes!("banner");
         Self {
             tui: Tui::default(),
             running: true,
@@ -87,23 +89,24 @@ impl App {
 
     /// process keypress event.
     fn process_keypress(&mut self, key: KeyEvent) {
+        println!("{:?}", key);
         match (key.code, key.modifiers) {
             // handler quit editor
-            (KeyCode::Char('q'), KeyModifiers::CONTROL) | (KeyCode::Esc, _) => {
+            (KeyCode::Char('q'), KeyModifiers::CONTROL) => {
                 self.running = false;
             }
 
-            (code, modifiers) => {
-                if modifiers == (KeyModifiers::CONTROL | KeyModifiers::ALT) {
-                    match code {
-                        KeyCode::Left => {
-                            self.text_container.next();
-                        }
-                        KeyCode::Right => {
-                            self.text_container.prev();
-                        }
-                        _ => {}
-                    }
+            (KeyCode::Left, keyModifier) => {
+                // switch buffer
+                if keyModifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
+                    self.text_container.next();
+                }
+            }
+
+            (KeyCode::Right, keyModifier) => {
+                // switch buffer
+                if keyModifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
+                    self.text_container.prev();
                 }
             }
 
