@@ -5,14 +5,15 @@ use crate::buffer::Buffered;
 use crate::tui::Tui;
 use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
 use std::io::Error;
+use std::thread::Thread;
 use std::time::Duration;
 
 /// the 'raw' application.
 pub struct App {
     // the terminal helper.
     tui: Tui,
-    // if is true,then exit app.
-    should_quit: bool,
+    // if is false,then exit app.
+    running: bool,
     // the banner buffer
     banner: BannerBuffer,
     text_container: TextBufferContainer,
@@ -29,7 +30,7 @@ impl Default for App {
 
         Self {
             tui: Tui::default(),
-            should_quit: false,
+            running: true,
             banner: BannerBuffer::default(),
             text_container,
             mouse_event: None,
@@ -40,22 +41,22 @@ impl Default for App {
 impl App {
     /// run editor
     pub fn run(&mut self) {
-        loop {
-            if let Err(error) = self.ui() {
+        while self.running {
+            if let Err(error) = self.draw_content() {
                 self.die(&error);
             }
 
             if let Err(error) = self.process_event() {
                 self.die(&error);
             }
-
-            if self.should_quit() {
-                break;
-            }
         }
+
+        self.tui.clear_all().expect("tui clear all error");
+        self.tui.destroy().expect("tui destroy error");
+        println!("bye!\r");
     }
 
-    fn ui(&mut self) -> std::io::Result<()> {
+    fn draw_content(&mut self) -> std::io::Result<()> {
         self.tui.hide_cursor().ok();
 
         if self.text_container.is_empty() {
@@ -89,7 +90,7 @@ impl App {
         match (key.code, key.modifiers) {
             // handler quit editor
             (KeyCode::Char('q'), KeyModifiers::CONTROL) | (KeyCode::Esc, _) => {
-                self.should_quit = true;
+                self.running = false;
             }
 
             (code, modifiers) => {
@@ -176,20 +177,6 @@ impl App {
                 false
             }
         }
-    }
-
-    /// if should quit do terminal destroy
-    fn should_quit(&mut self) -> bool {
-        match self.should_quit {
-            true => {
-                self.tui.clear_all().expect("tui clear all error");
-                self.tui.destroy().expect("tui destroy error");
-                println!("bye!\r");
-            }
-            false => {}
-        }
-
-        self.should_quit
     }
 
     /// has error,panic it.
