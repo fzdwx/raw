@@ -70,6 +70,12 @@ impl Tui {
         position()
     }
 
+    /// show cursor
+    pub fn show_cursor() -> crossterm::Result<()> {
+        stdout().execute(crossterm::cursor::Show)?;
+        Ok(())
+    }
+
     /// resize terminal.
     pub fn resize(&mut self) {
         self.internal_terminal
@@ -84,11 +90,6 @@ impl Tui {
     /// clear all buffers.
     pub fn clear_all(&mut self) -> io::Result<()> {
         self.internal_terminal.clear()
-    }
-
-    /// show cursor
-    pub fn show_cursor(&mut self) -> io::Result<()> {
-        self.internal_terminal.show_cursor()
     }
 
     /// hide cursor

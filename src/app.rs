@@ -67,13 +67,15 @@ impl App {
     }
 
     fn draw_content(&mut self) -> std::io::Result<()> {
-        // self.tui.hide_cursor().ok();
+        self.tui.hide_cursor().ok();
 
-        // todo 光标位置有问题
+        // todo 文本显示有问题
         self.tui.draw(|frame| {
             if self.text_container.is_empty() || self.show_banner {
                 self.banner.draw(frame);
             } else {
+                frame.set_cursor(0, 0);
+
                 Tui::move_to(10, 10);
                 self.text_container.draw(frame);
                 self.status.refresh(self.text_container.current());
@@ -81,7 +83,7 @@ impl App {
             }
         })?;
 
-        self.tui.show_cursor()
+        Ok(())
     }
 
     /// process keypress event.
@@ -206,19 +208,4 @@ impl App {
     }
 }
 
-fn draw(bufs: Vec<Buffer>, frame: &mut Frame<CrosstermBackend<Stdout>>) {
-    for buf in bufs {
-        match buf {
-            Buffer::Banner(b) => {
-                b.draw(frame);
-            }
-            Buffer::Text(b) => {
-                b.draw(frame);
-            }
-            Buffer::StatusLine(b) => {
-                b.draw(frame);
-            }
-            Buffer::TextBufferContainer(b) => b.draw(frame),
-        }
-    }
-}
+fn move_to() {}
