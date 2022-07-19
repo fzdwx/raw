@@ -93,6 +93,22 @@ impl App {
             (KeyCode::Char('q'), KeyModifiers::CONTROL) | (KeyCode::Esc, _) => {
                 self.should_quit = true;
             }
+
+            (code, modifiers) => {
+                if modifiers == (KeyModifiers::CONTROL | KeyModifiers::ALT) {
+                    match code {
+                        KeyCode::Left => {
+                            self.text_container.next();
+                        }
+                        KeyCode::Right => {
+                            self.text_container.prev();
+                        }
+                        _ => {}
+                    }
+                }
+            }
+
+            // (, KeyModifiers::CONTROL) => {}
             // (KeyCode::Right, _) => {
             //     self.index = (self.index + 1) % self.titles.len();
             // }
