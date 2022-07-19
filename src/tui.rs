@@ -11,16 +11,19 @@ use tui::layout::Rect;
 use tui::terminal::CompletedFrame;
 use tui::Frame;
 
-pub struct Terminal {
+/// Representation of a terminal user interface.
+///
+/// It is responsible for setting up the terminal,
+/// initializing the interface and handling the draw events.
+pub struct Tui {
     size: Rect,
     internal_terminal: tui::Terminal<CrosstermBackend<Stdout>>,
 }
 
-// todo need fix
-
-impl Default for Terminal {
-    fn default() -> Self {
-        let internal_terminal = Terminal::new_internal_terminal();
+impl Tui {
+    /// Constructs a new instance of [`Tui`].
+    pub fn new() -> Self {
+        let internal_terminal = Tui::new_internal_terminal();
         let size = internal_terminal.size().unwrap();
 
         let mut terminal = Self {
@@ -28,12 +31,10 @@ impl Default for Terminal {
             internal_terminal,
         };
 
-        terminal.prepare();
+        terminal.prepare().expect("tui init fail");
         terminal
     }
-}
 
-impl Terminal {
     /// Synchronizes terminal size, calls the rendering closure, flushes the current internal state
     /// and prepares for the next draw call.
     pub fn draw<F>(&mut self, f: F) -> io::Result<CompletedFrame>
@@ -90,23 +91,37 @@ impl Terminal {
         tui::Terminal::new(backend).unwrap()
     }
 
-    fn prepare(&mut self) {
+    fn prepare(&mut self) -> io::Result<()> {
         enable_raw_mode().unwrap();
         execute!(
             self.internal_terminal.backend_mut(),
             EnterAlternateScreen,
             EnableMouseCapture
-        )
-        .unwrap();
+        )?;
+        self.internal_terminal.hide_cursor()?;
+        self.internal_terminal.clear()?;
+        Ok(())
     }
 
-    pub fn destroy(&mut self) {
+    pub fn destroy(&mut self) -> io::Result<()> {
         disable_raw_mode().unwrap();
-        execute!(
-            self.internal_terminal.backend_mut(),
-            LeaveAlternateScreen,
-            DisableMouseCapture
-        )
-        .unwrap();
+        execute!(io::stderr(), LeaveAlternateScreen, DisableMouseCapture)?;
+        self.internal_terminal.show_cursor()?;
+        Ok(())
+    }
+}
+
+impl Default for Tui {
+    fn default() -> Self {
+        let internal_terminal = Tui::new_internal_terminal();
+        let size = internal_terminal.size().unwrap();
+
+        let mut terminal = Self {
+            size,
+            internal_terminal,
+        };
+
+        terminal.prepare().expect("tui init fail");
+        terminal
     }
 }

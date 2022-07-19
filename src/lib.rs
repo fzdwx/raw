@@ -8,4 +8,4 @@ pub mod args;
 pub mod buffer;
 pub mod filetype;
 pub mod row;
-pub mod terminal;
+pub mod tui;
