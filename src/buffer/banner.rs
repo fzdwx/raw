@@ -1,7 +1,6 @@
 use std::fs;
 use std::io::Stdout;
 
-use crate::app::{App, AppContext};
 use tui::backend::CrosstermBackend;
 use tui::buffer::Buffer;
 use tui::layout::{Constraint, Direction, Layout, Rect};
@@ -50,7 +49,7 @@ impl Buffered for BannerDocument {
         self.name.clone()
     }
 
-    fn draw(&self, app: &mut AppContext, frame: &mut Frame<CrosstermBackend<Stdout>>) {
+    fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>) {
         let vec = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Percentage(20), Constraint::Percentage(80)])

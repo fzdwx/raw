@@ -18,8 +18,6 @@ pub struct Terminal {
 
 // todo need fix
 
-const GLOBAL: Terminal = Terminal::default();
-
 impl Default for Terminal {
     fn default() -> Self {
         let internal_terminal = Terminal::new_internal_terminal();
