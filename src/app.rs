@@ -137,7 +137,7 @@ impl App {
     fn process_resize(&mut self, event: Event) {
         let (original_size, new_size) = self.flush_resize_events(event);
         self.terminal.resize();
-        // println!("Resize from: {:?}, to: {:?}", original_size, new_size);
+        println!("Resize from: {:?}, to: {:?}", original_size, new_size);
     }
 
     /// Resize events can occur in batches.
