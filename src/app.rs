@@ -2,15 +2,17 @@ use crate::args::Args;
 use crate::buffer::banner::BannerBuffer;
 use crate::buffer::text::TextBufferContainer;
 use crate::buffer::Buffered;
-use crate::terminal::Terminal;
-use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
+use crate::event::Event;
+use crate::tui::Tui;
+use crossterm::event::{poll, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
 use std::io::Error;
+use std::sync::mpsc::RecvError;
 use std::time::Duration;
 
 /// the 'raw' application.
 pub struct App {
     // the terminal helper.
-    terminal: Terminal,
+    tui: Tui,
     // if is true,then exit app.
     should_quit: bool,
     // the banner buffer
@@ -28,7 +30,7 @@ impl Default for App {
         text_container.load(args.filenames);
 
         Self {
-            terminal: Terminal::default(),
+            tui: Tui::new(250),
             should_quit: false,
             banner: BannerBuffer::default(),
             text_container,
@@ -56,34 +58,30 @@ impl App {
     }
 
     fn ui(&mut self) -> std::io::Result<()> {
-        self.terminal.hide_cursor().ok();
+        self.tui.hide_cursor().ok();
 
         if self.text_container.is_empty() {
-            self.terminal.draw(|frame| self.banner.draw(frame)).ok();
+            self.tui.draw(|frame| self.banner.draw(frame)).ok();
         } else {
-            self.terminal
-                .draw(|frame| self.text_container.draw(frame))
-                .ok();
+            self.tui.draw(|frame| self.text_container.draw(frame)).ok();
         }
 
-        self.terminal.show_cursor()
+        self.tui.show_cursor()
     }
 
     /// process user events.
-    fn process_event(&mut self) -> Result<(), Error> {
-        match self.terminal.read() {
-            Ok(event) => {
-                match event {
-                    Event::Key(input_key) => self.process_keypress(input_key),
+    fn process_event(&mut self) -> Result<(), RecvError> {
+        match self.tui.events.next()? {
+            Event::Tick => self.tick(),
+            Event::Key(input_key) => self.process_keypress(input_key),
 
-                    Event::Mouse(m) => self.process_mouse_moved(m),
+            Event::Mouse(m) => self.process_mouse_moved(m),
 
-                    Event::Resize(_, _) => self.process_resize(event),
-                }
-                Ok(())
+            e => {
+                self.process_resize(e);
             }
-            Err(err) => Err(err),
         }
+        Ok(())
     }
 
     /// process keypress event.
@@ -95,6 +93,7 @@ impl App {
             }
 
             (code, modifiers) => {
+                // switch buffer
                 if modifiers == (KeyModifiers::CONTROL | KeyModifiers::ALT) {
                     match code {
                         KeyCode::Left => {
@@ -136,8 +135,12 @@ impl App {
     /// process resize events.
     fn process_resize(&mut self, event: Event) {
         let (original_size, new_size) = self.flush_resize_events(event);
-        self.terminal.resize();
-        // println!("Resize from: {:?}, to: {:?}", original_size, new_size);
+        self.tui.resize();
+        println!("Resize from: {:?}, to: {:?}", original_size, new_size);
+    }
+
+    fn tick(&self) {
+        // println!("tick")
     }
 
     /// Resize events can occur in batches.
@@ -149,7 +152,7 @@ impl App {
         if let Event::Resize(x, y) = event {
             let mut last_resize = (x, y);
             while let Ok(true) = poll(Duration::from_millis(50)) {
-                if let Ok(Event::Resize(x, y)) = self.terminal.read() {
+                if let Ok(Event::Resize(x, y)) = self.tui.read() {
                     last_resize = (x, y);
                 }
             }
@@ -184,8 +187,8 @@ impl App {
     fn should_quit(&mut self) -> bool {
         match self.should_quit {
             true => {
-                self.terminal.clear_all().expect("clear error");
-                self.terminal.destroy();
+                self.tui.clear_all().expect("clear error");
+                self.tui.destroy().expect("tui destroy fail");
                 println!("bye!\r");
             }
             false => {}
@@ -195,8 +198,8 @@ impl App {
     }
 
     /// has error,panic it.
-    fn die(&mut self, error: &Error) {
-        self.terminal.destroy();
+    fn die(&mut self, error: &dyn std::error::Error) {
+        self.tui.destroy().expect("tui destroy fail");
         panic!("{}", error);
     }
 }
