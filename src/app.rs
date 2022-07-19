@@ -1,4 +1,6 @@
+use crate::args::Args;
 use crate::buffer::banner::BannerBuffer;
+use crate::buffer::text::TextBufferContainer;
 use crate::buffer::Buffered;
 use crate::terminal::Terminal;
 use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
@@ -13,16 +15,23 @@ pub struct App {
     should_quit: bool,
     // the banner buffer
     banner: BannerBuffer,
+    text_container: TextBufferContainer,
     // mouse event, reduce the occurrence of resize events
     mouse_event: Option<MouseEvent>,
 }
 
 impl Default for App {
     fn default() -> Self {
+        let mut text_container = TextBufferContainer::default();
+        let args = Args::load();
+
+        text_container.load(args.filenames);
+
         Self {
             terminal: Terminal::default(),
             should_quit: false,
             banner: BannerBuffer::default(),
+            text_container,
             mouse_event: None,
         }
     }
@@ -49,7 +58,14 @@ impl App {
     fn ui(&mut self) -> std::io::Result<()> {
         self.terminal.hide_cursor().ok();
 
-        self.terminal.draw(|frame| self.banner.draw(frame)).ok();
+        if self.text_container.is_empty() {
+            self.terminal.draw(|frame| self.banner.draw(frame)).ok();
+        } else {
+            self.terminal
+                .draw(|frame| self.text_container.draw(frame))
+                .ok();
+        }
+
         self.terminal.show_cursor()
     }
 

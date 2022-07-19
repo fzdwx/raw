@@ -1,10 +1,11 @@
 use crate::buffer::Buffered;
 use crate::row::Row;
 use std::fs;
-use std::io::Stdout;
+use std::io::{Error, Stdout};
 use tui::backend::CrosstermBackend;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
+use tui::style::Style;
 use tui::widgets::Widget;
 use tui::Frame;
 
@@ -14,18 +15,18 @@ pub struct TextBuffer {
 }
 
 impl TextBuffer {
-    pub fn open(filename: &str) -> Self {
-        let contents = fs::read_to_string(filename).map_or("".to_string(), |s| s);
+    pub fn open(filename: &str) -> Result<TextBuffer, Error> {
+        let contents = fs::read_to_string(filename)?;
         let mut rows = Vec::new();
 
         for line in contents.lines() {
             rows.push(Row::from(line));
         }
 
-        Self {
+        Ok(Self {
             rows,
             filename: filename.to_string(),
-        }
+        })
     }
 }
 
@@ -39,13 +40,28 @@ impl Buffered for TextBuffer {
     }
 
     fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>) {
-        todo!()
+        frame.render_widget(self, frame.size());
     }
 }
 
 impl Widget for &TextBuffer {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        todo!()
+        let y = area.y as usize;
+        for terminal_row in 0..area.height {
+            if let Some(row) = self.rows.get(y.saturating_add(terminal_row as usize)) {
+                let width = area.width as usize;
+                let start = area.x as usize;
+                let end = start + width as usize;
+
+                let line = row.render(start, end);
+                buf.set_string(
+                    area.left(),
+                    (terminal_row) + area.y,
+                    line.as_str(),
+                    Style::default(),
+                );
+            }
+        }
     }
 }
 
@@ -119,6 +135,19 @@ impl TextBufferContainer {
     /// get container size.
     pub fn size(&self) -> usize {
         self.texts.len()
+    }
+
+    /// load files
+    pub fn load(&mut self, filenames: Vec<String>) {
+        for filename in filenames {
+            match TextBuffer::open(filename.as_str()) {
+                Ok(text_buffer) => self.add(text_buffer),
+                Err(_) => {
+
+                    // todo file not found error,collect it,return to app
+                }
+            }
+        }
     }
 
     fn update_empty(&mut self, text_empty: bool) {

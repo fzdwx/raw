@@ -125,6 +125,7 @@ dependencies = [
  "crossterm",
  "tui",
  "unicode-segmentation",
+ "unicode-width",
 ]
 
 [[package]]
