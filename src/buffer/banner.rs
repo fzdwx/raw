@@ -1,6 +1,4 @@
-use std::fs;
 use std::io::Stdout;
-
 use tui::backend::CrosstermBackend;
 use tui::buffer::Buffer;
 use tui::layout::{Constraint, Direction, Layout, Rect};
@@ -92,4 +90,11 @@ impl Widget for &Banner {
             }
         }
     }
+}
+
+fn get_layout(area: Rect) -> Vec<Rect> {
+    Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(20), Constraint::Percentage(80)])
+        .split(area)
 }

@@ -1,4 +1,5 @@
-use crate::buffer::Buffered;
+use crate::buffer::{get_text_and_status_layout, Buffered};
+use crate::filetype::FileType;
 use crate::row::Row;
 use std::fs;
 use std::io::{Error, Stdout};
@@ -12,6 +13,7 @@ use tui::Frame;
 pub struct Text {
     rows: Vec<Row>,
     filename: String,
+    filetype: FileType,
 }
 
 impl Text {
@@ -26,7 +28,13 @@ impl Text {
         Ok(Self {
             rows,
             filename: filename.to_string(),
+            // todo 解析文件类型
+            filetype: FileType::default(),
         })
+    }
+
+    pub fn filetype(&self) -> FileType {
+        self.filetype.clone()
     }
 }
 

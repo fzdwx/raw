@@ -1,14 +1,19 @@
+use crate::buffer::banner::Banner;
+use crate::buffer::{Buffer, Buffered};
+use crossterm::cursor::position;
 use crossterm::event::{read, Event};
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    ExecutableCommand,
 };
 use std::io;
 use std::io::{stdout, Stdout};
 use tui::backend::CrosstermBackend;
 use tui::layout::Rect;
 use tui::terminal::CompletedFrame;
+use tui::widgets::Widget;
 use tui::Frame;
 
 /// Representation of a terminal user interface.
@@ -50,8 +55,18 @@ impl Tui {
     }
 
     /// move cursor to (x,y)
-    pub fn move_to(&mut self, x: u16, y: u16) -> io::Result<()> {
-        self.internal_terminal.set_cursor(x, y)
+    pub fn move_to(x: u16, y: u16) {
+        stdout().execute(crossterm::cursor::MoveTo(x, y)).ok();
+    }
+
+    /// get size
+    pub fn size() -> crossterm::Result<(u16, u16)> {
+        crossterm::terminal::size()
+    }
+
+    /// get position
+    pub fn position() -> crossterm::Result<(u16, u16)> {
+        position()
     }
 
     /// resize terminal.
@@ -63,11 +78,6 @@ impl Tui {
             .internal_terminal
             .size()
             .expect("terminal get size error");
-    }
-
-    /// get
-    pub fn size(&self) -> Rect {
-        self.size
     }
 
     /// clear all buffers.

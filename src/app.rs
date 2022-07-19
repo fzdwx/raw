@@ -1,13 +1,14 @@
 use crate::args::Args;
 use crate::buffer::banner::Banner;
+use crate::buffer::statusline::StatusLine;
 use crate::buffer::text::TextBufferContainer;
-use crate::buffer::Buffered;
+use crate::buffer::{Buffer, Buffered};
 use crate::tui::Tui;
 use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
-use std::fs;
-use std::io::Error;
-use std::thread::Thread;
+use std::io::{Error, Stdout};
 use std::time::Duration;
+use tui::backend::CrosstermBackend;
+use tui::Frame;
 
 /// the 'raw' application.
 pub struct App {
@@ -19,6 +20,8 @@ pub struct App {
     show_banner: bool,
     // the banner buffer
     banner: Banner,
+    status: StatusLine,
+    // text buffer container.
     text_container: TextBufferContainer,
     // mouse event, reduce the occurrence of resize events
     mouse_event: Option<MouseEvent>,
@@ -38,6 +41,7 @@ impl Default for App {
             show_banner: false,
             banner: Banner::default(),
             text_container,
+            status: StatusLine::default(),
             mouse_event: None,
         }
     }
@@ -68,7 +72,14 @@ impl App {
             self.tui.draw(|frame| self.banner.draw(frame)).ok();
             return Ok(());
         } else {
-            self.tui.draw(|frame| self.text_container.draw(frame)).ok();
+            self.tui
+                .draw(|frame| {
+                    Tui::move_to(10, 10);
+                    self.text_container.draw(frame);
+                    self.status.refresh(self.text_container.current());
+                    self.status.draw(frame);
+                })
+                .ok();
         }
 
         self.tui.show_cursor()
@@ -86,9 +97,9 @@ impl App {
                 self.show_banner = !self.show_banner;
             }
 
-            (KeyCode::Left, keyModifier) => {
+            (KeyCode::Left, modifier) => {
                 // switch buffer
-                if keyModifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
+                if modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
                     self.text_container.next();
                 }
             }
@@ -193,5 +204,20 @@ impl App {
     fn die(&mut self, error: &Error) {
         self.tui.destroy().expect("tui destroy error");
         panic!("{}", error);
+    }
+}
+
+fn draw(buf: Buffer, frame: &mut Frame<CrosstermBackend<Stdout>>) {
+    match buf {
+        Buffer::Banner(b) => {
+            b.draw(frame);
+        }
+        Buffer::Text(b) => {
+            b.draw(frame);
+        }
+        Buffer::StatusLine(b) => {
+            b.draw(frame);
+        }
+        Buffer::TextBufferContainer(b) => b.draw(frame),
     }
 }
