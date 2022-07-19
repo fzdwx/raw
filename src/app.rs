@@ -1,10 +1,9 @@
-use crate::buffer::banner::BannerDocument;
+use crate::buffer::banner::BannerBuffer;
 use crate::buffer::Buffered;
 use crate::terminal::Terminal;
 use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
 use std::io::Error;
 use std::time::Duration;
-use tui::terminal::CompletedFrame;
 
 /// the 'raw' application.
 pub struct App {
@@ -13,7 +12,7 @@ pub struct App {
     // if is true,then exit app.
     should_quit: bool,
     // the banner buffer
-    banner: BannerDocument,
+    banner: BannerBuffer,
     // mouse event, reduce the occurrence of resize events
     mouse_event: Option<MouseEvent>,
 }
@@ -23,7 +22,7 @@ impl Default for App {
         Self {
             terminal: Terminal::default(),
             should_quit: false,
-            banner: BannerDocument::default(),
+            banner: BannerBuffer::default(),
             mouse_event: None,
         }
     }
@@ -47,8 +46,11 @@ impl App {
         }
     }
 
-    fn ui(&mut self) -> std::io::Result<CompletedFrame> {
-        self.terminal.draw(|frame| self.banner.draw(frame))
+    fn ui(&mut self) -> std::io::Result<()> {
+        self.terminal.hide_cursor().ok();
+
+        self.terminal.draw(|frame| self.banner.draw(frame)).ok();
+        self.terminal.show_cursor()
     }
 
     /// process user events.

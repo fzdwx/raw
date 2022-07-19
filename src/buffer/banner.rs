@@ -12,13 +12,13 @@ use crate::buffer::Buffered;
 use crate::row::Row;
 
 /// only load banner.
-pub struct BannerDocument {
+pub struct BannerBuffer {
     rows: Vec<Row>,
     name: String,
     max_size: usize,
 }
 
-impl BannerDocument {
+impl BannerBuffer {
     pub fn default() -> Self {
         let contents = fs::read_to_string("./src/banner").expect("open banner file fail!");
 
@@ -44,9 +44,13 @@ impl BannerDocument {
     }
 }
 
-impl Buffered for BannerDocument {
+impl Buffered for BannerBuffer {
     fn name(&self) -> String {
         self.name.clone()
+    }
+
+    fn is_empty(&self) -> bool {
+        self.rows.is_empty()
     }
 
     fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>) {
@@ -60,7 +64,7 @@ impl Buffered for BannerDocument {
     }
 }
 
-impl Widget for &BannerDocument {
+impl Widget for &BannerBuffer {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let mut width = area.width as usize;
         let start = area.x as usize;
