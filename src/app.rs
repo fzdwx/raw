@@ -8,7 +8,8 @@ use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent}
 use std::io::{Error, Stdout};
 use std::time::Duration;
 use tui::backend::CrosstermBackend;
-use tui::Frame;
+use tui::terminal::CompletedFrame;
+use tui::{Frame, Terminal};
 
 /// the 'raw' application.
 pub struct App {
@@ -66,21 +67,19 @@ impl App {
     }
 
     fn draw_content(&mut self) -> std::io::Result<()> {
-        self.tui.hide_cursor().ok();
+        // self.tui.hide_cursor().ok();
 
-        if self.text_container.is_empty() || self.show_banner {
-            self.tui.draw(|frame| self.banner.draw(frame)).ok();
-            return Ok(());
-        } else {
-            self.tui
-                .draw(|frame| {
-                    Tui::move_to(10, 10);
-                    self.text_container.draw(frame);
-                    self.status.refresh(self.text_container.current());
-                    self.status.draw(frame);
-                })
-                .ok();
-        }
+        // todo 光标位置有问题
+        self.tui.draw(|frame| {
+            if self.text_container.is_empty() || self.show_banner {
+                self.banner.draw(frame);
+            } else {
+                Tui::move_to(10, 10);
+                self.text_container.draw(frame);
+                self.status.refresh(self.text_container.current());
+                self.status.draw(frame);
+            }
+        })?;
 
         self.tui.show_cursor()
     }
@@ -207,17 +206,19 @@ impl App {
     }
 }
 
-fn draw(buf: Buffer, frame: &mut Frame<CrosstermBackend<Stdout>>) {
-    match buf {
-        Buffer::Banner(b) => {
-            b.draw(frame);
+fn draw(bufs: Vec<Buffer>, frame: &mut Frame<CrosstermBackend<Stdout>>) {
+    for buf in bufs {
+        match buf {
+            Buffer::Banner(b) => {
+                b.draw(frame);
+            }
+            Buffer::Text(b) => {
+                b.draw(frame);
+            }
+            Buffer::StatusLine(b) => {
+                b.draw(frame);
+            }
+            Buffer::TextBufferContainer(b) => b.draw(frame),
         }
-        Buffer::Text(b) => {
-            b.draw(frame);
-        }
-        Buffer::StatusLine(b) => {
-            b.draw(frame);
-        }
-        Buffer::TextBufferContainer(b) => b.draw(frame),
     }
 }

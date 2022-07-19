@@ -8,6 +8,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
+use std::fmt::Error;
 use std::io;
 use std::io::{stdout, Stdout};
 use tui::backend::CrosstermBackend;
