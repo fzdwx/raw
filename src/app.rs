@@ -1,5 +1,5 @@
 use crate::args::Args;
-use crate::buffer::banner::BannerBuffer;
+use crate::buffer::banner::Banner;
 use crate::buffer::text::TextBufferContainer;
 use crate::buffer::Buffered;
 use crate::tui::Tui;
@@ -15,8 +15,10 @@ pub struct App {
     tui: Tui,
     // if is false,then exit app.
     running: bool,
+    // if is true,then show banner.
+    show_banner: bool,
     // the banner buffer
-    banner: BannerBuffer,
+    banner: Banner,
     text_container: TextBufferContainer,
     // mouse event, reduce the occurrence of resize events
     mouse_event: Option<MouseEvent>,
@@ -33,7 +35,8 @@ impl Default for App {
         Self {
             tui: Tui::default(),
             running: true,
-            banner: BannerBuffer::default(),
+            show_banner: false,
+            banner: Banner::default(),
             text_container,
             mouse_event: None,
         }
@@ -61,8 +64,9 @@ impl App {
     fn draw_content(&mut self) -> std::io::Result<()> {
         self.tui.hide_cursor().ok();
 
-        if self.text_container.is_empty() {
+        if self.text_container.is_empty() || self.show_banner {
             self.tui.draw(|frame| self.banner.draw(frame)).ok();
+            return Ok(());
         } else {
             self.tui.draw(|frame| self.text_container.draw(frame)).ok();
         }
@@ -70,30 +74,16 @@ impl App {
         self.tui.show_cursor()
     }
 
-    /// process user events.
-    fn process_event(&mut self) -> Result<(), Error> {
-        match self.tui.read() {
-            Ok(event) => {
-                match event {
-                    Event::Key(input_key) => self.process_keypress(input_key),
-
-                    Event::Mouse(m) => self.process_mouse_moved(m),
-
-                    Event::Resize(_, _) => self.process_resize(event),
-                }
-                Ok(())
-            }
-            Err(err) => Err(err),
-        }
-    }
-
     /// process keypress event.
     fn process_keypress(&mut self, key: KeyEvent) {
-        println!("{:?}", key);
         match (key.code, key.modifiers) {
             // handler quit editor
             (KeyCode::Char('q'), KeyModifiers::CONTROL) => {
                 self.running = false;
+            }
+
+            (KeyCode::Char('b'), KeyModifiers::CONTROL) => {
+                self.show_banner = !self.show_banner;
             }
 
             (KeyCode::Left, keyModifier) => {
@@ -124,6 +114,23 @@ impl App {
             // discard
             _ => {}
         };
+    }
+
+    /// process user events.
+    fn process_event(&mut self) -> Result<(), Error> {
+        match self.tui.read() {
+            Ok(event) => {
+                match event {
+                    Event::Key(input_key) => self.process_keypress(input_key),
+
+                    Event::Mouse(m) => self.process_mouse_moved(m),
+
+                    Event::Resize(_, _) => self.process_resize(event),
+                }
+                Ok(())
+            }
+            Err(err) => Err(err),
+        }
     }
 
     /// process mouse move event.

@@ -1,16 +1,17 @@
 pub mod banner;
+pub mod statusline;
 pub mod text;
 
 use std::io::Stdout;
 
-use crate::buffer::banner::BannerBuffer;
-use crate::buffer::text::TextBuffer;
+use crate::buffer::banner::Banner;
+use crate::buffer::text::Text;
 use tui::backend::CrosstermBackend;
 use tui::Frame;
 
 pub enum Buffer {
-    Banner(BannerBuffer),
-    Text(TextBuffer),
+    Banner(Banner),
+    Text(Text),
 }
 
 pub trait Buffered {

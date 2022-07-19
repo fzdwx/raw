@@ -9,13 +9,13 @@ use tui::style::Style;
 use tui::widgets::Widget;
 use tui::Frame;
 
-pub struct TextBuffer {
+pub struct Text {
     rows: Vec<Row>,
     filename: String,
 }
 
-impl TextBuffer {
-    pub fn open(filename: &str) -> Result<TextBuffer, Error> {
+impl Text {
+    pub fn open(filename: &str) -> Result<Text, Error> {
         let contents = fs::read_to_string(filename)?;
         let mut rows = Vec::new();
 
@@ -30,7 +30,7 @@ impl TextBuffer {
     }
 }
 
-impl Buffered for TextBuffer {
+impl Buffered for Text {
     fn name(&self) -> String {
         self.filename.clone()
     }
@@ -44,7 +44,7 @@ impl Buffered for TextBuffer {
     }
 }
 
-impl Widget for &TextBuffer {
+impl Widget for &Text {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let y = area.y as usize;
         for terminal_row in 0..area.height {
@@ -66,7 +66,7 @@ impl Widget for &TextBuffer {
 }
 
 pub struct TextBufferContainer {
-    texts: Vec<TextBuffer>,
+    texts: Vec<Text>,
     index: usize,
     empty: bool,
 }
@@ -81,19 +81,19 @@ impl TextBufferContainer {
     }
 
     /// add text to last.
-    pub fn add(&mut self, text: TextBuffer) {
+    pub fn add(&mut self, text: Text) {
         let text_empty = text.is_empty();
         self.texts.push(text);
         self.update_empty(text_empty)
     }
 
     /// remove current text.
-    pub fn remove_current(&mut self) -> TextBuffer {
+    pub fn remove_current(&mut self) -> Text {
         self.remove(self.index)
     }
 
     /// remove text by index.
-    pub fn remove(&mut self, index: usize) -> TextBuffer {
+    pub fn remove(&mut self, index: usize) -> Text {
         let result = self.texts.remove(index);
         if self.texts.is_empty() {
             self.empty = true;
@@ -123,12 +123,12 @@ impl TextBufferContainer {
     /// get text by index.
     ///
     /// only get,don't move to index.
-    pub fn get(&self, index: usize) -> Option<&TextBuffer> {
+    pub fn get(&self, index: usize) -> Option<&Text> {
         self.texts.get(index)
     }
 
     /// get current text.
-    pub fn current(&self) -> Option<&TextBuffer> {
+    pub fn current(&self) -> Option<&Text> {
         self.get(self.index)
     }
 
@@ -140,7 +140,7 @@ impl TextBufferContainer {
     /// load files
     pub fn load(&mut self, filenames: Vec<String>) {
         for filename in filenames {
-            match TextBuffer::open(filename.as_str()) {
+            match Text::open(filename.as_str()) {
                 Ok(text_buffer) => self.add(text_buffer),
                 Err(_) => {
 

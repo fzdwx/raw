@@ -12,13 +12,13 @@ use crate::buffer::Buffered;
 use crate::row::Row;
 
 /// only load banner.
-pub struct BannerBuffer {
+pub struct Banner {
     rows: Vec<Row>,
     name: String,
     max_size: usize,
 }
 
-impl BannerBuffer {
+impl Banner {
     pub fn default() -> Self {
         let contents = String::from_utf8(include_bytes!("../banner").to_vec()).unwrap();
 
@@ -44,7 +44,7 @@ impl BannerBuffer {
     }
 }
 
-impl Buffered for BannerBuffer {
+impl Buffered for Banner {
     fn name(&self) -> String {
         self.name.clone()
     }
@@ -64,7 +64,7 @@ impl Buffered for BannerBuffer {
     }
 }
 
-impl Widget for &BannerBuffer {
+impl Widget for &Banner {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let mut width = area.width as usize;
         let start = area.x as usize;

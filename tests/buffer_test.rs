@@ -1,4 +1,4 @@
-use raw::buffer::text::{TextBuffer, TextBufferContainer};
+use raw::buffer::text::{Text, TextBufferContainer};
 use raw::buffer::Buffered;
 use std::fs;
 
@@ -11,7 +11,7 @@ fn test_empty_default() {
 #[test]
 fn test_empty_add() {
     let mut container = TextBufferContainer::default();
-    let test_1 = TextBuffer::open("qwe");
+    let test_1 = Text::open("qwe");
 
     container.add(test_1);
 
@@ -21,7 +21,7 @@ fn test_empty_add() {
 #[test]
 fn test_empty_add_text() {
     let mut container = TextBufferContainer::default();
-    let test_1 = TextBuffer::open("./src/banner");
+    let test_1 = Text::open("./src/banner");
     container.add(test_1);
 
     assert_eq!(container.is_empty(), false)
@@ -30,8 +30,8 @@ fn test_empty_add_text() {
 #[test]
 fn test_remove_and_add_and_size() {
     let mut container = TextBufferContainer::default();
-    container.add(TextBuffer::open("./src/banner"));
-    container.add(TextBuffer::open("./src/row.rs"));
+    container.add(Text::open("./src/banner"));
+    container.add(Text::open("./src/row.rs"));
 
     assert_eq!(container.size(), 2);
 
@@ -48,8 +48,8 @@ fn test_remove_and_add_and_size() {
 #[test]
 fn test_move() {
     let mut container = TextBufferContainer::default();
-    container.add(TextBuffer::open("./src/banner"));
-    container.add(TextBuffer::open("./src/row.rs"));
+    container.add(Text::open("./src/banner"));
+    container.add(Text::open("./src/row.rs"));
 
     container.prev();
 
