@@ -1,3 +1,4 @@
+use crate::app::{App, AppContext};
 use crate::buffer::Buffered;
 use std::io::Stdout;
 use tui::backend::CrosstermBackend;
@@ -10,7 +11,7 @@ impl Buffered for TextDocument {
         todo!()
     }
 
-    fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>) {
+    fn draw(&self, app: &mut AppContext, frame: &mut Frame<CrosstermBackend<Stdout>>) {
         todo!()
     }
 }

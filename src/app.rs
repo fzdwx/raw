@@ -2,9 +2,11 @@ use crate::buffer::banner::BannerDocument;
 use crate::buffer::Buffered;
 use crate::terminal::Terminal;
 use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
-use std::io::Error;
+use std::io::{Error, Stdout};
 use std::time::Duration;
+use tui::backend::CrosstermBackend;
 use tui::terminal::CompletedFrame;
+use tui::Frame;
 
 /// the 'raw' application.
 pub struct App {
@@ -16,6 +18,10 @@ pub struct App {
     banner: BannerDocument,
     // mouse event, reduce the occurrence of resize events
     mouse_event: Option<MouseEvent>,
+}
+
+pub struct AppContext {
+    terminal: Terminal,
 }
 
 impl Default for App {
@@ -48,7 +54,17 @@ impl App {
     }
 
     fn ui(&mut self) -> std::io::Result<CompletedFrame> {
-        self.terminal.draw(|frame| self.banner.draw(frame))
+        // AppContext{
+        //     terminal: self.terminal
+        // }
+        self.terminal.draw(|frame| {
+            self.banner.draw(
+                &mut AppContext {
+                    terminal: Default::default(),
+                },
+                frame,
+            )
+        })
     }
 
     /// process user events.

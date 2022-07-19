@@ -1,6 +1,7 @@
 use std::fs;
 use std::io::Stdout;
 
+use crate::app::{App, AppContext};
 use tui::backend::CrosstermBackend;
 use tui::buffer::Buffer;
 use tui::layout::{Constraint, Direction, Layout, Rect};
@@ -16,12 +17,6 @@ pub struct BannerDocument {
     rows: Vec<Row>,
     name: String,
     max_size: usize,
-}
-
-impl BannerDocument {
-    pub(crate) fn row(&self, index: usize) -> Option<&Row> {
-        self.rows.get(index)
-    }
 }
 
 impl BannerDocument {
@@ -44,6 +39,10 @@ impl BannerDocument {
             max_size,
         }
     }
+
+    pub fn row(&self, index: usize) -> Option<&Row> {
+        self.rows.get(index)
+    }
 }
 
 impl Buffered for BannerDocument {
@@ -51,13 +50,13 @@ impl Buffered for BannerDocument {
         self.name.clone()
     }
 
-    fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>) {
+    fn draw(&self, app: &mut AppContext, frame: &mut Frame<CrosstermBackend<Stdout>>) {
         let vec = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Percentage(20), Constraint::Percentage(80)])
             .split(frame.size());
 
-        /// see [`impl Widget for &BannerDocument#render#render`]
+        /// see impl Widget for &BannerDocument#render#render
         frame.render_widget(self, vec[1]);
     }
 }

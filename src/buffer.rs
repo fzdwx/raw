@@ -3,6 +3,7 @@ pub mod text;
 
 use std::io::Stdout;
 
+use crate::app::{App, AppContext};
 use crate::buffer::banner::BannerDocument;
 use crate::buffer::text::TextDocument;
 use tui::backend::CrosstermBackend;
@@ -15,5 +16,5 @@ pub enum Buffer {
 
 pub trait Buffered {
     fn name(&self) -> String;
-    fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>);
+    fn draw(&self, app: &mut AppContext, frame: &mut Frame<CrosstermBackend<Stdout>>);
 }
