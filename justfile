@@ -3,6 +3,9 @@
 run:
    cargo run
 
+run-m:
+   cargo run README.md justfile
+
 # install raw editor in linux.
 install:
     sudo cp just /usr/local/bin/just
