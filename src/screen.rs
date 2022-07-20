@@ -1,4 +1,4 @@
-use crate::AppResult;
+use crate::app::AppResult;
 use crossterm::terminal::Clear;
 use crossterm::terminal::ClearType::All;
 use crossterm::{
@@ -10,18 +10,20 @@ use crossterm::{
 };
 use std::io::stdout;
 
+/// get screen size.
 pub fn size() -> AppResult<(u16, u16)> {
     let size = crossterm::terminal::size()?;
     Ok(size)
 }
 
+/// init screen.
 pub fn init() -> AppResult<()> {
     enable_raw_mode()?;
     execute!(stdout(), EnableMouseCapture, EnterAlternateScreen)?;
-
     Ok(())
 }
 
+/// exit screen.
 pub fn exit() -> AppResult<()> {
     execute!(
         stdout(),

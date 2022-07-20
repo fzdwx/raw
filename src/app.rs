@@ -5,8 +5,8 @@ use std::ops::Deref;
 use crossterm::cursor::position;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use crate::event::flush_resize_events;
-use crate::{screen, Event, EventHandler};
+use crate::event::{flush_resize_events, Event, EventHandler};
+use crate::screen;
 
 /// global result.
 pub type AppResult<T> = Result<T, Box<dyn Error>>;
@@ -29,7 +29,11 @@ impl App {
     /// # Examples
     ///
     /// ```
-    ///  App::new(250).run()
+    ///use raw::app::{App, AppResult};
+    ///
+    ///fn main() -> AppResult<()> {
+    ///    App::default().run()
+    ///}
     /// ```
     pub fn new(tick_rate: u64) -> App {
         screen::init().expect("tui init fail");
