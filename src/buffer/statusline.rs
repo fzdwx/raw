@@ -79,20 +79,6 @@ impl Widget for &StatusLine {
 
         self.render_filename(layout[0], buf);
         self.render_position(layout[1], buf);
-
-        // buf.set_string(
-        //     area.x,
-        //     area.y,
-        //     format!(
-        //         "{}          {:?}  {} ({},{})",
-        //         self.filename,
-        //         area,
-        //         self.filetype.to_string(),
-        //         y,
-        //         x,
-        //     ),
-        //     Style::default(),
-        // );
     }
 }
 

@@ -52,7 +52,7 @@ impl App {
     /// run editor
     pub fn run(&mut self) {
         while self.running {
-            if let Err(error) = self.draw_content() {
+            if let Err(error) = self.draw_ui() {
                 self.die(&error);
             }
 
@@ -66,21 +66,19 @@ impl App {
         println!("bye!\r");
     }
 
-    fn draw_content(&mut self) -> std::io::Result<()> {
+    fn draw_ui(&mut self) -> std::io::Result<()> {
         self.tui.hide_cursor().ok();
+        if self.text_container.is_empty() || self.show_banner {
+            return self.tui.draw_buffer_auto(&self.banner);
+        }
 
-        // todo 文本显示有问题
         self.tui.draw(|frame| {
-            if self.text_container.is_empty() || self.show_banner {
-                self.banner.draw(frame);
-            } else {
-                frame.set_cursor(0, 0);
+            frame.set_cursor(10, 10);
+            self.text_container.draw(frame);
+            self.status.refresh(self.text_container.current());
 
-                Tui::move_to(10, 10);
-                self.text_container.draw(frame);
-                self.status.refresh(self.text_container.current());
-                self.status.draw(frame);
-            }
+            Tui::move_to(10, 10);
+            self.status.draw(frame);
         })?;
 
         Ok(())

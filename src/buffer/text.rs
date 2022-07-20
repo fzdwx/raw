@@ -1,6 +1,7 @@
 use crate::buffer::{get_text_and_status_layout, Buffered};
 use crate::filetype::FileType;
 use crate::row::Row;
+use crate::tui::Tui;
 use std::fs;
 use std::io::{Error, Stdout};
 use tui::backend::CrosstermBackend;
@@ -48,7 +49,7 @@ impl Buffered for Text {
     }
 
     fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>) {
-        frame.render_widget(self, frame.size());
+        frame.render_widget(self, get_text_and_status_layout(frame.size())[0]);
     }
 }
 

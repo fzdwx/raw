@@ -1,4 +1,5 @@
 use crate::buffer::banner::Banner;
+use crate::buffer::statusline::StatusLine;
 use crate::buffer::{Buffer, Buffered};
 use crossterm::cursor::position;
 use crossterm::event::{read, Event};
@@ -48,6 +49,21 @@ impl Tui {
         F: FnOnce(&mut Frame<CrosstermBackend<Stdout>>),
     {
         self.internal_terminal.draw(f)
+    }
+
+    pub fn draw_buffer_auto<B: Buffered>(&mut self, b: &B) -> io::Result<()> {
+        self.internal_terminal.draw(|f| {
+            b.draw(f);
+        })?;
+
+        Ok(())
+    }
+
+    /// draw buffer
+    pub fn draw_buffer<B: Buffered>(&mut self, b: &B) -> io::Result<()> {
+        self.internal_terminal.autoresize()?;
+        b.draw(&mut self.internal_terminal.get_frame());
+        self.internal_terminal.flush()
     }
 
     /// read event
