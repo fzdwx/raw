@@ -33,6 +33,10 @@ impl Row {
         }
         result
     }
+
+    pub fn len(&self) -> usize {
+        self.len
+    }
 }
 
 impl From<&str> for Row {

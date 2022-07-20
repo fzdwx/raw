@@ -1,7 +1,7 @@
 use crate::buffer::banner::Banner;
 use crate::buffer::statusline::StatusLine;
 use crate::buffer::{Buffer, Buffered};
-use crossterm::cursor::position;
+use crossterm::cursor::{position, EnableBlinking};
 use crossterm::event::{read, Event};
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
@@ -124,7 +124,8 @@ impl Tui {
         execute!(
             self.internal_terminal.backend_mut(),
             EnterAlternateScreen,
-            EnableMouseCapture
+            // EnableMouseCapture,
+            EnableBlinking
         )?;
         self.internal_terminal.hide_cursor()?;
         self.internal_terminal.clear()?;
@@ -133,7 +134,11 @@ impl Tui {
 
     pub fn destroy(&mut self) -> io::Result<()> {
         disable_raw_mode().unwrap();
-        execute!(io::stderr(), LeaveAlternateScreen, DisableMouseCapture)?;
+        execute!(
+            io::stderr(),
+            LeaveAlternateScreen,
+            // DisableMouseCapture
+        )?;
         self.internal_terminal.show_cursor()?;
         Ok(())
     }

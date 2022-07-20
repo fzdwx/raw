@@ -3,9 +3,11 @@ use crate::buffer::banner::Banner;
 use crate::buffer::statusline::StatusLine;
 use crate::buffer::text::TextBufferContainer;
 use crate::buffer::{Buffer, Buffered};
+use crate::position::Position;
 use crate::tui::Tui;
 use crossterm::event::{poll, Event, KeyCode, KeyEvent, KeyModifiers, MouseEvent};
-use std::io::{Error, Stdout};
+use crossterm::execute;
+use std::io::{stdout, Error, Stdout};
 use std::time::Duration;
 use tui::backend::CrosstermBackend;
 use tui::terminal::CompletedFrame;
@@ -26,6 +28,7 @@ pub struct App {
     text_container: TextBufferContainer,
     // mouse event, reduce the occurrence of resize events
     mouse_event: Option<MouseEvent>,
+    position: Position,
 }
 
 impl Default for App {
@@ -44,6 +47,7 @@ impl Default for App {
             text_container,
             status: StatusLine::default(),
             mouse_event: None,
+            position: Position::default(),
         }
     }
 }
@@ -73,11 +77,10 @@ impl App {
         }
 
         self.tui.draw(|frame| {
-            frame.set_cursor(10, 10);
             self.text_container.draw(frame);
             self.status.refresh(self.text_container.current());
 
-            Tui::move_to(10, 10);
+            self.position.moved(frame, self.text_container.current());
             self.status.draw(frame);
         })?;
 
@@ -95,6 +98,16 @@ impl App {
             (KeyCode::Char('b'), KeyModifiers::CONTROL) => {
                 self.show_banner = !self.show_banner;
             }
+
+            // move cursor
+            (KeyCode::Up, _)
+            | (KeyCode::Down, _)
+            | (KeyCode::Left, _)
+            | (KeyCode::Right, _)
+            | (KeyCode::PageUp, _)
+            | (KeyCode::PageDown, _)
+            | (KeyCode::End, _)
+            | (KeyCode::Home, _) => self.move_cursor(key.code),
 
             (KeyCode::Left, modifier) => {
                 // switch buffer
@@ -124,6 +137,20 @@ impl App {
             // discard
             _ => {}
         };
+    }
+
+    fn move_cursor(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Left => self.position.sub_x(1),
+            KeyCode::Right => self.position.add_x(1),
+            KeyCode::Up => self.position.sub_y(1),
+            KeyCode::Down => self.position.add_y(1),
+            KeyCode::Home => {}
+            KeyCode::End => {}
+            KeyCode::PageUp => {}
+            KeyCode::PageDown => {}
+            _ => {}
+        }
     }
 
     /// process user events.

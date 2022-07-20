@@ -7,5 +7,6 @@ pub mod args;
 pub mod buffer;
 pub mod event;
 pub mod filetype;
+pub mod position;
 pub mod row;
 pub mod tui;

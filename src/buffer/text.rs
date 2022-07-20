@@ -34,8 +34,19 @@ impl Text {
         })
     }
 
+    /// get file type
     pub fn filetype(&self) -> FileType {
         self.filetype.clone()
+    }
+
+    /// get text length
+    pub fn len(&self) -> usize {
+        self.rows.len()
+    }
+
+    /// get row by index.
+    pub fn row(&self, index: usize) -> Option<&Row> {
+        self.rows.get(index)
     }
 }
 
