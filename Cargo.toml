@@ -5,12 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[dependencies.futures-timer]
+version = "3.0.2"
+
+[dependencies.tokio]
+version = "1.20.0"
+features =["full"]
+
 [dependencies.crossterm]
 version = "0.23"
 features = ["event-stream"]
-
-[dependencies.tui]
-version = "0.18"
 
 [dependencies.unicode-segmentation]
 version = "1.9.0"
