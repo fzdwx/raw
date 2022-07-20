@@ -1,9 +1,9 @@
-use raw::render::text::{Document, DocumentSwitcher};
+use raw::render::document::{Document, DocumentSwitcher};
 
 #[test]
 fn test_doc() {
     let banner = Document::open("./src/banner").unwrap();
-    println!("{:?}", banner.content.lines());
+    println!("{:?}", banner.content.line(1));
 }
 
 #[test]

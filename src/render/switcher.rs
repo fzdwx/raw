@@ -1,14 +1,8 @@
-use anyhow::Context;
-use ropey::{Rope, RopeBuilder};
-
-use crate::app::AppResult;
+use crate::render::document::Document;
+use crate::render::rect::Sub;
 use crate::render::Render;
-
-/// the document
-pub struct Document {
-    pub content: Rope,
-    name: String,
-}
+use tui::buffer::Buffer;
+use tui::layout::Rect;
 
 pub struct DocumentSwitcher {
     documents: Vec<Document>,
@@ -16,41 +10,11 @@ pub struct DocumentSwitcher {
     empty: bool,
 }
 
-impl Render for Document {
-    fn draw() {
-        todo!()
-    }
-}
+impl Render for DocumentSwitcher {
+    fn draw(&self, buf: &mut Buffer, area: Rect) {
+        let current = self.current().unwrap();
 
-impl Document {
-    pub fn from(content: Rope, filepath: &str) -> Self {
-        Self {
-            content,
-            name: filepath.to_string(),
-        }
-    }
-
-    pub fn open(filepath: &str) -> AppResult<Self> {
-        let reader = std::fs::File::open(filepath)?;
-
-        let content = Rope::from_reader(reader)?;
-
-        Ok(Document::from(content, filepath))
-    }
-
-    pub fn default() -> Self {
-        Self {
-            content: Default::default(),
-            name: "".to_string(),
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.content.len_bytes() == 0
-    }
-
-    pub fn name(&self) -> String {
-        self.name.clone()
+        current.draw(buf, area.to_text());
     }
 }
 

@@ -87,58 +87,6 @@ impl App {
         Ok(())
     }
 
-    /// process keypress event.
-    fn process_keypress(&mut self, key: KeyEvent) {
-        match (key.code, key.modifiers) {
-            // handler quit editor
-            (KeyCode::Char('q'), KeyModifiers::CONTROL) => {
-                self.running = false;
-            }
-
-            (KeyCode::Char('b'), KeyModifiers::CONTROL) => {
-                self.show_banner = !self.show_banner;
-            }
-
-            // move cursor
-            (KeyCode::Up, _)
-            | (KeyCode::Down, _)
-            | (KeyCode::Left, _)
-            | (KeyCode::Right, _)
-            | (KeyCode::PageUp, _)
-            | (KeyCode::PageDown, _)
-            | (KeyCode::End, _)
-            | (KeyCode::Home, _) => self.move_cursor(key.code),
-
-            (KeyCode::Left, modifier) => {
-                // switch buffer
-                if modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
-                    self.text_container.next();
-                }
-            }
-
-            (KeyCode::Right, keyModifier) => {
-                // switch buffer
-                if keyModifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
-                    self.text_container.prev();
-                }
-            }
-
-            // (, KeyModifiers::CONTROL) => {}
-            // (KeyCode::Right, _) => {
-            //     self.index = (self.index + 1) % self.titles.len();
-            // }
-            // (KeyCode::Left, _) => {
-            //     if self.index > 0 {
-            //         self.index -= 1;
-            //     } else {
-            //         self.index = self.titles.len() - 1;
-            //     }
-            // }
-            // discard
-            _ => {}
-        };
-    }
-
     fn move_cursor(&mut self, key: KeyCode) {
         match key {
             KeyCode::Left => self.position.sub_x(1),
