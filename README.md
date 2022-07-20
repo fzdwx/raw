@@ -8,10 +8,3 @@
 
 1. 支持`buffer`切换: `CTRL` + `ALT` + (`<-` | `->`)
    > 使用方法: 可以先加载多个文件,`raw README.md raw.iml`
-
----
-感谢:
-
-1. [hecto](https://www.philippflenker.com/hecto)
-2. [tui](https://github.com/fdehau/tui-rs)
-3. [crossterm](https://github.com/crossterm-rs/crossterm)

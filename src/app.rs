@@ -9,7 +9,7 @@ use crate::event::{flush_resize_events, Event, EventHandler};
 use crate::screen;
 
 /// global result.
-pub type AppResult<T> = Result<T, Box<dyn Error>>;
+pub type AppResult<T> = Result<T, anyhow::Error>;
 
 /// the application.
 pub struct App {
@@ -82,7 +82,7 @@ impl App {
     }
 }
 
-fn exit_with_err(err: Box<dyn Error>) {
+fn exit_with_err(err: anyhow::Error) {
     screen::exit().unwrap();
     panic!("{}", err)
 }
