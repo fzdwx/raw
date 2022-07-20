@@ -38,7 +38,7 @@ impl Default for App {
 
         text_container.load(args.filenames);
 
-        let x = include_bytes!("banner");
+        let x = include_bytes!("../banner");
         Self {
             tui: Tui::default(),
             running: true,
