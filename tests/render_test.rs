@@ -34,14 +34,14 @@ fn test_empty_add_text() {
 fn test_remove_and_add_and_size() {
     let mut container = DocumentSwitcher::default();
     container.add(Document::open("./src/banner").unwrap());
-    container.add(Document::open("./src/screen.rs").unwrap());
+    container.add(Document::open("./src/").unwrap());
 
     assert_eq!(container.size(), 2);
 
     assert_eq!(container.current().unwrap().name(), "./src/banner");
     container.remove_current();
 
-    assert_eq!(container.current().unwrap().name(), "./src/screen.rs");
+    assert_eq!(container.current().unwrap().name(), "./src/");
     container.remove_current();
 
     assert_eq!(container.is_empty(), true);
@@ -52,24 +52,24 @@ fn test_remove_and_add_and_size() {
 fn test_move() {
     let mut container = DocumentSwitcher::default();
     container.add(Document::open("./src/banner").unwrap());
-    container.add(Document::open("./src/screen.rs").unwrap());
+    container.add(Document::open("./src/").unwrap());
 
     container.prev();
 
-    assert_eq!(container.current().unwrap().name(), "./src/screen.rs");
-    assert_eq!(container.name(), "./src/screen.rs");
+    assert_eq!(container.current().unwrap().name(), "./src/");
+    assert_eq!(container.name(), "./src/");
     container.next();
     assert_eq!(container.current().unwrap().name(), "./src/banner");
     assert_eq!(container.name(), "./src/banner");
     container.next();
-    assert_eq!(container.current().unwrap().name(), "./src/screen.rs");
-    assert_eq!(container.name(), "./src/screen.rs");
+    assert_eq!(container.current().unwrap().name(), "./src/");
+    assert_eq!(container.name(), "./src/");
 
     container.reset();
     assert_eq!(container.current().unwrap().name(), "./src/banner");
 
     container.next();
-    assert_eq!(container.current().unwrap().name(), "./src/screen.rs");
+    assert_eq!(container.current().unwrap().name(), "./src/");
     container.prev();
     assert_eq!(container.current().unwrap().name(), "./src/banner");
 }

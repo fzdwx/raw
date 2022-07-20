@@ -17,7 +17,11 @@ pub struct Document {
 }
 
 impl Render for Document {
-    fn draw(&self, buf: &mut Buffer, area: Rect) {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    fn render(&self, buf: &mut Buffer, area: Rect) {
         if self.is_empty() {
             return;
         }
@@ -60,9 +64,5 @@ impl Document {
 
     pub fn is_empty(&self) -> bool {
         self.content.len_bytes() == 0
-    }
-
-    pub fn name(&self) -> String {
-        self.name.clone()
     }
 }

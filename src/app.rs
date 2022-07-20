@@ -98,7 +98,7 @@ impl App {
         }
 
         let buf = self.screen.get_buf();
-        self.doc_switcher.draw(buf, buf.area);
+        self.doc_switcher.render(buf, buf.area);
 
         // must
         self.screen.refresh_buf();

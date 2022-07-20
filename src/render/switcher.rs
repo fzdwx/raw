@@ -11,10 +11,14 @@ pub struct DocumentSwitcher {
 }
 
 impl Render for DocumentSwitcher {
-    fn draw(&self, buf: &mut Buffer, area: Rect) {
+    fn name(&self) -> String {
+        self.current().unwrap().name()
+    }
+
+    fn render(&self, buf: &mut Buffer, area: Rect) {
         let current = self.current().unwrap();
 
-        current.draw(buf, area.to_text());
+        current.render(buf, area.to_text());
     }
 }
 
@@ -25,10 +29,6 @@ impl DocumentSwitcher {
             index: 0,
             empty: true,
         }
-    }
-
-    pub fn name(&self) -> String {
-        self.current().unwrap().name()
     }
 
     /// check
