@@ -1,5 +1,5 @@
 use crate::app::AppResult;
-use crossterm::event::{self, Event as CrosstermEvent, KeyEvent, MouseEvent};
+use crossterm::event::{self, poll, Event as CrosstermEvent, KeyEvent, MouseEvent};
 use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -82,4 +82,21 @@ pub fn read() -> AppResult<Event> {
         CrosstermEvent::Resize(w, h) => Event::Resize(w, h),
     };
     Ok(event)
+}
+
+// Resize events can occur in batches.
+// With a simple loop they can be flushed.
+// This function will keep the first and last resize event.
+pub fn flush_resize_events(event: Event) -> ((u16, u16), (u16, u16)) {
+    if let Event::Resize(x, y) = event {
+        let mut last_resize = (x, y);
+        while let Ok(true) = poll(Duration::from_millis(50)) {
+            if let Ok(Event::Resize(x, y)) = read() {
+                last_resize = (x, y);
+            }
+        }
+
+        return ((x, y), last_resize);
+    }
+    ((0, 0), (0, 0))
 }
