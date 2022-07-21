@@ -163,6 +163,7 @@ impl App {
         let (screen_width, screen_height) = screen::size().unwrap();
         let (doc_width, doc_height) = self.doc_switcher.current_doc_size(y);
 
+        /// todo 要获取下个字符的具体长度, 比如说如果是中文那么下一个就有可能不是直接+1
         match key_code {
             KeyCode::Left => {
                 if x > 0 {
