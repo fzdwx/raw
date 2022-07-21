@@ -1,6 +1,8 @@
 use crate::render::document::Document;
 use crate::render::rect::Sub;
+use crate::render::status_line::StatusLine;
 use crate::render::Render;
+use std::borrow::Borrow;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
 
@@ -8,6 +10,7 @@ pub struct DocumentSwitcher {
     documents: Vec<Document>,
     index: usize,
     empty: bool,
+    status_line: StatusLine,
 }
 
 impl Render for DocumentSwitcher {
@@ -15,10 +18,12 @@ impl Render for DocumentSwitcher {
         self.current().unwrap().name()
     }
 
-    fn render(&self, buf: &mut Buffer, area: Rect) {
-        let current = self.current().unwrap();
+    fn render(&mut self, buf: &mut Buffer, area: Rect) {
+        self.current_mut().unwrap().render(buf, area.to_document());
 
-        current.render(buf, area.to_text());
+        let current = self.current().unwrap();
+        self.status_line.refresh(current.name(), current.filetype());
+        self.status_line.render(buf, area.to_status_line());
     }
 }
 
@@ -28,6 +33,7 @@ impl DocumentSwitcher {
             documents: Vec::new(),
             index: 0,
             empty: true,
+            status_line: StatusLine::default(),
         }
     }
 
@@ -84,8 +90,12 @@ impl DocumentSwitcher {
     }
 
     /// get current text.
+    pub fn current_mut(&mut self) -> Option<&mut Document> {
+        self.documents.get_mut(self.index)
+    }
+
     pub fn current(&self) -> Option<&Document> {
-        self.get(self.index)
+        self.documents.get(self.index)
     }
 
     /// get container size.

@@ -9,11 +9,13 @@ use tui::text::Span;
 use crate::app::AppResult;
 use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
+use crate::{DEFAULT_FILENAME, DEFAULT_FILETYPE};
 
 /// the document
 pub struct Document {
     pub content: Rope,
     name: String,
+    filetype: String,
 }
 
 impl Render for Document {
@@ -21,7 +23,7 @@ impl Render for Document {
         self.name.clone()
     }
 
-    fn render(&self, buf: &mut Buffer, area: Rect) {
+    fn render(&mut self, buf: &mut Buffer, area: Rect) {
         if self.is_empty() {
             return;
         }
@@ -45,6 +47,7 @@ impl Document {
         Self {
             content,
             name: filepath.to_string(),
+            filetype: DEFAULT_FILETYPE.to_string(),
         }
     }
 
@@ -57,13 +60,14 @@ impl Document {
     }
 
     pub fn default() -> Self {
-        Self {
-            content: Default::default(),
-            name: "".to_string(),
-        }
+        Self::from(Default::default(), DEFAULT_FILENAME)
     }
 
     pub fn is_empty(&self) -> bool {
         self.content.len_bytes() == 0
+    }
+
+    pub fn filetype(&self) -> String {
+        self.filetype.clone()
     }
 }

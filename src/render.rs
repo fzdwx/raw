@@ -41,5 +41,5 @@ pub trait Render {
     ///        }
     ///    }
     /// ```
-    fn render(&self, buf: &mut Buffer, area: Rect);
+    fn render(&mut self, buf: &mut Buffer, area: Rect);
 }
