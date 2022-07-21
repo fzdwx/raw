@@ -38,6 +38,10 @@ impl Render for Banner {
 
         let mut y = chunk.y;
         for p in contents {
+            if y >= chunk.height {
+                return;
+            }
+
             p.render(
                 Rect {
                     y,
