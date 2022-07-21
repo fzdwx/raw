@@ -24,9 +24,19 @@ impl Screen {
             terminal: Terminal::new(CrosstermBackend::new(stdout())).unwrap(),
         }
     }
-    /// refresh buf
+    /// refresh screen
     pub fn refresh(&mut self) {
         self.terminal.draw(|frame| {}).unwrap();
+    }
+
+    pub fn refresh_and_move_to(&mut self, pos: (u16, u16)) {
+        self.terminal
+            .draw(|frame| frame.set_cursor(pos.0, pos.1))
+            .unwrap();
+    }
+
+    pub fn refresh_and_move_t_origin(&mut self) {
+        self.refresh_and_move_to((0, 0));
     }
 
     /// get current buf
@@ -44,7 +54,12 @@ pub fn size() -> AppResult<(u16, u16)> {
 /// init screen.
 pub fn init() -> AppResult<()> {
     enable_raw_mode()?;
-    execute!(stdout(), EnableMouseCapture, EnterAlternateScreen)?;
+    execute!(
+        stdout(),
+        EnableMouseCapture,
+        EnterAlternateScreen,
+        crossterm::cursor::EnableBlinking
+    )?;
     Ok(())
 }
 

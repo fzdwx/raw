@@ -98,13 +98,13 @@ impl App {
     fn draw_some(&mut self) {
         let buf = self.screen.get_buf();
         if self.doc_switcher.is_empty() {
-            self.banner.render(buf, buf.area)
-        } else {
-            self.doc_switcher.render(buf, buf.area);
+            self.banner.render(buf, buf.area);
+            self.screen.refresh();
+            return;
         }
 
-        // must
-        self.screen.refresh();
+        self.doc_switcher.render(buf, buf.area);
+        self.screen.refresh_and_move_t_origin();
     }
 
     /// on key press
