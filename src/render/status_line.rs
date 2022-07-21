@@ -70,7 +70,7 @@ impl Default for StatusLine {
         Self {
             filename: DEFAULT_FILENAME.to_string(),
             filetype: DEFAULT_FILETYPE.to_string(),
-            bg: Style::default().bg(Color::Gray), // .bg(Color::Rgb(201, 123, 193)),
+            bg: Style::default().bg(Color::Rgb(124, 252, 200)), // .bg(Color::Rgb(201, 123, 193)),
             fg: Style::default()
                 .fg(Color::Rgb(30, 30, 46))
                 .add_modifier(Modifier::BOLD), //.fg(Color::Rgb(30, 30, 46)),
