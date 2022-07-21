@@ -65,11 +65,19 @@ impl DocumentSwitcher {
 
     /// move to next text.
     pub fn next(&mut self) {
+        if self.empty {
+            return;
+        }
+
         self.index = (self.index + 1) % self.documents.len();
     }
 
     /// move to prev text.
     pub fn prev(&mut self) {
+        if self.empty {
+            return;
+        }
+
         if self.index > 0 {
             self.index -= 1;
         } else {

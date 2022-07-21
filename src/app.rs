@@ -131,14 +131,14 @@ impl App {
             (KeyCode::Left, modifier) => {
                 // switch buffer
                 if modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
-                    self.doc_switcher.next();
+                    self.doc_switcher.prev();
                 }
             }
 
             (KeyCode::Right, keyModifier) => {
                 // switch buffer
                 if keyModifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
-                    self.doc_switcher.prev();
+                    self.doc_switcher.next();
                 }
             }
 

@@ -4,7 +4,7 @@ run:
    cargo run
 
 rm:
-   cargo run README.md justfile
+   cargo run README.md justfile LICENSE
 
 rb:
     ./target/release/raw
