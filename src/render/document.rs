@@ -7,6 +7,7 @@ use tui::style::Style;
 use tui::text::Span;
 
 use crate::app::AppResult;
+use crate::render::extend::RopeSliceEx;
 use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
 use crate::{DEFAULT_FILENAME, DEFAULT_FILETYPE};
@@ -35,8 +36,7 @@ impl Render for Document {
             };
 
             // todo 是不是太暴力了.
-            let string = format!("{}", line);
-            buf.set_string(0, x, string, Style::default());
+            buf.set_string(0, x, line.get_string(), Style::default());
             x += 1;
         }
     }

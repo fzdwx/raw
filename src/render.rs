@@ -1,8 +1,9 @@
 use tui::buffer::Buffer;
 use tui::layout::Rect;
 
+pub mod banner;
 pub mod document;
-pub mod rect;
+pub mod extend;
 pub mod status_line;
 pub mod switcher;
 

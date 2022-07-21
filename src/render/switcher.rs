@@ -1,5 +1,5 @@
 use crate::render::document::Document;
-use crate::render::rect::Sub;
+use crate::render::extend::RectEx;
 use crate::render::status_line::StatusLine;
 use crate::render::Render;
 use std::borrow::Borrow;

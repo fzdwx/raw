@@ -1,13 +1,13 @@
 use crate::render::document::Document;
-use crate::render::rect::Sub;
+use crate::render::extend::RectEx;
 use crate::render::Render;
 use crate::{DEFAULT_FILENAME, DEFAULT_FILETYPE};
 use std::fmt::format;
 use std::fs::FileType;
 use tui::buffer::Buffer;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Style};
-use tui::widgets::{Block, Borders, Paragraph, Widget};
+use tui::style::{Color, Modifier, Style};
+use tui::widgets::{Block, Borders, Paragraph, Widget, Wrap};
 
 /// status line render.
 pub struct StatusLine {
@@ -71,7 +71,9 @@ impl Default for StatusLine {
             filename: DEFAULT_FILENAME.to_string(),
             filetype: DEFAULT_FILETYPE.to_string(),
             bg: Style::default().bg(Color::Gray), // .bg(Color::Rgb(201, 123, 193)),
-            fg: Style::default().fg(Color::Rgb(30, 30, 46)), //.fg(Color::Rgb(30, 30, 46)),
+            fg: Style::default()
+                .fg(Color::Rgb(30, 30, 46))
+                .add_modifier(Modifier::BOLD), //.fg(Color::Rgb(30, 30, 46)),
         }
     }
 }

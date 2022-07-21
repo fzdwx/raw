@@ -8,6 +8,7 @@ use crossterm::cursor::position;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use crate::event::{flush_resize_events, Event, EventHandler};
+use crate::render::banner::Banner;
 use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
 use crate::screen;
@@ -21,6 +22,7 @@ pub struct App {
     running: bool,
     events: EventHandler,
     screen: Screen,
+    banner: Banner,
     doc_switcher: DocumentSwitcher,
 }
 
@@ -53,6 +55,7 @@ impl App {
             running: true,
             events: EventHandler::new(tick_rate),
             screen: Screen::default(),
+            banner: Banner::default(),
             doc_switcher,
         }
     }
@@ -93,15 +96,15 @@ impl App {
 
     /// draw ui.
     fn draw_some(&mut self) {
+        let buf = self.screen.get_buf();
         if self.doc_switcher.is_empty() {
-            return;
+            self.banner.render(buf, buf.area)
+        } else {
+            self.doc_switcher.render(buf, buf.area);
         }
 
-        let buf = self.screen.get_buf();
-        self.doc_switcher.render(buf, buf.area);
-
         // must
-        self.screen.refresh_buf();
+        self.screen.refresh();
     }
 
     /// on key press

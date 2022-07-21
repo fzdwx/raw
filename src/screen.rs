@@ -25,7 +25,7 @@ impl Screen {
         }
     }
     /// refresh buf
-    pub fn refresh_buf(&mut self) {
+    pub fn refresh(&mut self) {
         self.terminal.draw(|frame| {}).unwrap();
     }
 
