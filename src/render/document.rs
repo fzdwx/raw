@@ -32,7 +32,8 @@ impl Render for Document {
                 return;
             };
 
-            let string = format!("{}", line.slice(..).as_str().unwrap());
+            // todo 是不是太暴力了.
+            let string = format!("{}", line);
             buf.set_string(0, x, string, Style::default());
             x += 1;
         }

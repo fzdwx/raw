@@ -81,10 +81,10 @@ impl App {
             }
             Event::Mouse(_) => {}
             Event::Resize(x, y) => {
-                let (original_size, new_size) = flush_resize_events(Event::Resize(x, y));
-                if original_size != new_size {
-                    println!("Resize from: {:?}, to: {:?}", original_size, new_size);
-                };
+                // let (original_size, new_size) = flush_resize_events(Event::Resize(x, y));
+                // if original_size != new_size {
+                //     println!("Resize from: {:?}, to: {:?}", original_size, new_size);
+                // };
             }
         }
 
