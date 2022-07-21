@@ -2,7 +2,6 @@ use crate::app::AppResult;
 use crossterm::terminal::Clear;
 use crossterm::terminal::ClearType::All;
 use crossterm::{
-    cursor::position,
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
@@ -18,12 +17,29 @@ pub struct Screen {
     terminal: Terminal,
 }
 
-impl Screen {
-    pub fn default() -> Self {
+/// the actual position of the current cursor
+#[derive(Copy, Clone, Default)]
+pub struct Offset {
+    x: usize,
+    y: usize,
+}
+
+/// relative position of the current cursor
+#[derive(Copy, Clone, Default)]
+pub struct Position {
+    x: u16,
+    y: u16,
+}
+
+impl Default for Screen {
+    fn default() -> Self {
         Self {
             terminal: Terminal::new(CrosstermBackend::new(stdout())).unwrap(),
         }
     }
+}
+
+impl Screen {
     /// refresh screen
     pub fn refresh(&mut self) {
         self.terminal.draw(|frame| {}).unwrap();
@@ -49,6 +65,13 @@ impl Screen {
 pub fn size() -> AppResult<(u16, u16)> {
     let size = crossterm::terminal::size()?;
     Ok(size)
+}
+
+/// get current cursor position
+pub fn position() -> AppResult<Position> {
+    let (x, y) = crossterm::cursor::position()?;
+
+    Ok(Position { x, y })
 }
 
 /// init screen.

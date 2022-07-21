@@ -11,8 +11,8 @@ pub struct Banner {
     content: Rope,
 }
 
-impl Banner {
-    pub fn default() -> Self {
+impl Default for Banner {
+    fn default() -> Self {
         let content = Rope::from(String::from_utf8(include_bytes!("../banner").to_vec()).unwrap());
         Self { content }
     }

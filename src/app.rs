@@ -12,18 +12,25 @@ use crate::render::banner::Banner;
 use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
 use crate::screen;
-use crate::screen::Screen;
+use crate::screen::{Offset, Position, Screen};
 
 /// global result.
 pub type AppResult<T> = Result<T, anyhow::Error>;
 
 /// the application.
 pub struct App {
+    // app is running?
     running: bool,
+    // events reader
     events: EventHandler,
+    // the screen
     screen: Screen,
+    // the banner render
     banner: Banner,
+    // document container.
     doc_switcher: DocumentSwitcher,
+    actual: Offset,
+    relative: Position,
 }
 
 impl App {
@@ -54,9 +61,11 @@ impl App {
         Self {
             running: true,
             events: EventHandler::new(tick_rate),
-            screen: Screen::default(),
-            banner: Banner::default(),
+            screen: Default::default(),
+            banner: Default::default(),
             doc_switcher,
+            actual: Default::default(),
+            relative: Default::default(),
         }
     }
 
@@ -70,7 +79,7 @@ impl App {
             }
         }
 
-        screen::exit()
+        self.exit()
     }
 
     /// dispatch events.
@@ -144,6 +153,9 @@ impl App {
 
             _ => {}
         };
+    }
+    fn exit(&self) -> AppResult<()> {
+        screen::exit()
     }
 }
 
