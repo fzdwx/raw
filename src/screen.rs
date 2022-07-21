@@ -1,4 +1,5 @@
-use crate::app::AppResult;
+use std::io::stdout;
+
 use crossterm::terminal::Clear;
 use crossterm::terminal::ClearType::All;
 use crossterm::{
@@ -7,9 +8,10 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     Result,
 };
-use std::io::stdout;
 use tui::backend::CrosstermBackend;
 use tui::buffer::Buffer;
+
+use crate::app::AppResult;
 
 type Terminal = tui::terminal::Terminal<CrosstermBackend<std::io::Stdout>>;
 
@@ -17,18 +19,20 @@ pub struct Screen {
     terminal: Terminal,
 }
 
-/// the actual position of the current cursor
-#[derive(Copy, Clone, Default)]
-pub struct Offset {
-    x: usize,
-    y: usize,
-}
+impl Screen {}
 
 /// relative position of the current cursor
 #[derive(Copy, Clone, Default)]
+pub struct Offset {
+    pub x: u16,
+    pub y: u16,
+}
+
+/// the actual position of the current cursor
+#[derive(Copy, Clone, Default)]
 pub struct Position {
-    x: u16,
-    y: u16,
+    pub x: usize,
+    pub y: usize,
 }
 
 impl Default for Screen {
@@ -41,18 +45,17 @@ impl Default for Screen {
 
 impl Screen {
     /// refresh screen
-    pub fn refresh(&mut self) {
-        self.terminal.draw(|frame| {}).unwrap();
+    pub fn refresh(&mut self) -> AppResult<()> {
+        self.terminal.draw(|frame| {})?;
+
+        Ok(())
     }
 
-    pub fn refresh_and_move_to(&mut self, pos: (u16, u16)) {
+    pub fn refresh_and_set_cursor(&mut self, pos: Position) -> AppResult<()> {
         self.terminal
-            .draw(|frame| frame.set_cursor(pos.0, pos.1))
-            .unwrap();
-    }
+            .draw(|frame| frame.set_cursor(pos.x as u16, pos.y as u16))?;
 
-    pub fn refresh_and_move_t_origin(&mut self) {
-        self.refresh_and_move_to((0, 0));
+        Ok(())
     }
 
     /// get current buf
@@ -68,10 +71,21 @@ pub fn size() -> AppResult<(u16, u16)> {
 }
 
 /// get current cursor position
-pub fn position() -> AppResult<Position> {
+pub fn position() -> AppResult<(u16, u16)> {
     let (x, y) = crossterm::cursor::position()?;
 
-    Ok(Position { x, y })
+    Ok((x, y))
+}
+
+/// move cursor to position
+pub fn move_to(pos: Position) -> AppResult<()> {
+    execute!(
+        stdout(),
+        crossterm::cursor::MoveTo(pos.x as u16, pos.y as u16),
+        crossterm::cursor::Show
+    )?;
+
+    Ok(())
 }
 
 /// init screen.

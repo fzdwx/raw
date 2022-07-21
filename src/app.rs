@@ -29,8 +29,8 @@ pub struct App {
     banner: Banner,
     // document container.
     doc_switcher: DocumentSwitcher,
-    actual: Offset,
-    relative: Position,
+    relative: Offset,
+    actual: Position,
 }
 
 impl App {
@@ -102,16 +102,19 @@ impl App {
     }
 
     /// draw ui.
-    fn draw_some(&mut self) {
+    fn draw_some(&mut self) -> AppResult<()> {
         let buf = self.screen.get_buf();
         if self.doc_switcher.is_empty() {
             self.banner.render(buf, buf.area);
-            self.screen.refresh();
-            return;
+            self.screen.refresh()?;
+
+            return Ok(());
         }
+        screen::move_to(self.actual)?;
 
         self.doc_switcher.render(buf, buf.area);
-        self.screen.refresh_and_move_t_origin();
+
+        self.screen.refresh_and_set_cursor(self.actual)
     }
 
     /// on key press
@@ -129,12 +132,13 @@ impl App {
             // move cursor
             (KeyCode::Up, _)
             | (KeyCode::Down, _)
-            | (KeyCode::Left, _)
-            | (KeyCode::Right, _)
+            | (KeyCode::Left, KeyModifiers::NONE)
+            | (KeyCode::Right, KeyModifiers::NONE)
             | (KeyCode::PageUp, _)
             | (KeyCode::PageDown, _)
             | (KeyCode::End, _)
             | (KeyCode::Home, _) => self.move_cursor(key.code),
+
             (KeyCode::Left, modifier) => {
                 // switch buffer
                 if modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
@@ -154,8 +158,55 @@ impl App {
     }
 
     /// move cursor
-    fn move_cursor(&self, key_code: KeyCode) {
-        todo!()
+    fn move_cursor(&mut self, key_code: KeyCode) {
+        let Position { mut x, mut y } = self.actual;
+        let (screen_width, screen_height) = screen::size().unwrap();
+        let (doc_width, doc_height) = self.doc_switcher.current_doc_size(y);
+
+        match key_code {
+            KeyCode::Left => {
+                if x > 0 {
+                    x = x.saturating_sub(1);
+                } else if y > 0 {
+                    y = y.saturating_sub(1);
+                    x = self.doc_switcher.current_doc_row_len(y)
+                }
+            }
+            KeyCode::Right => {
+                // 正常向右移动一位
+                if x < doc_width {
+                    x = x.saturating_add(1);
+                    // 换到下一行
+                } else if y < doc_height {
+                    y = y.saturating_add(1);
+                    x = 0;
+                }
+            }
+            KeyCode::Up => {
+                y = y.saturating_sub(1);
+            }
+            KeyCode::Down => {
+                if y < doc_height {
+                    y = y.saturating_add(1);
+                }
+            }
+            KeyCode::Home => {}
+            KeyCode::End => {}
+            KeyCode::PageUp => {}
+            KeyCode::PageDown => {}
+            _ => {}
+        }
+
+        let doc_width = self.doc_switcher.current_doc_row_len(y);
+        if x > doc_width {
+            x = doc_width;
+        }
+
+        if y == doc_height && doc_width != 0 {
+            y -= 1;
+        }
+
+        self.actual = Position { x, y };
     }
 
     fn exit(&self) -> AppResult<()> {

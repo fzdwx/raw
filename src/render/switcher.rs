@@ -1,10 +1,12 @@
+use std::borrow::Borrow;
+
+use tui::buffer::Buffer;
+use tui::layout::Rect;
+
 use crate::render::document::Document;
 use crate::render::extend::RectEx;
 use crate::render::status_line::StatusLine;
 use crate::render::Render;
-use std::borrow::Borrow;
-use tui::buffer::Buffer;
-use tui::layout::Rect;
 
 pub struct DocumentSwitcher {
     documents: Vec<Document>,
@@ -40,6 +42,22 @@ impl DocumentSwitcher {
     /// check
     pub fn is_empty(&self) -> bool {
         self.empty
+    }
+
+    /// get current document (row.len,doc.len)
+    pub fn current_doc_size(&self, row: usize) -> (usize, usize) {
+        match self.current() {
+            None => (0, 0),
+            Some(doc) => (doc.line_len(row), doc.len()),
+        }
+    }
+
+    /// get current document row.len
+    pub fn current_doc_row_len(&self, row: usize) -> usize {
+        match self.current() {
+            None => (0),
+            Some(doc) => (doc.line_len(row)),
+        }
     }
 
     /// add text to last.

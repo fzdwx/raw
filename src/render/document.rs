@@ -1,6 +1,7 @@
-use anyhow::Context;
-use ropey::{Rope, RopeBuilder};
 use std::borrow::Borrow;
+
+use anyhow::Context;
+use ropey::{Rope, RopeBuilder, RopeSlice};
 use tui::buffer::Buffer;
 use tui::layout::Rect;
 use tui::style::Style;
@@ -63,11 +64,49 @@ impl Document {
         Self::from(Default::default(), DEFAULT_FILENAME)
     }
 
+    /// get content.
+    pub fn content(&self) -> &Rope {
+        &self.content
+    }
+
+    /// How many lines are in the current document
+    pub fn len(&self) -> usize {
+        self.content.len_lines()
+    }
+
+    /// get line len.
+    pub fn line_len(&self, index: usize) -> usize {
+        if index > self.len() {
+            return 0;
+        }
+
+        // todo 只是简单的-2(因为有/r/n)
+        self.content.line(index).len_bytes() - 2
+    }
+
+    /// get line by index.
+    pub fn line(&self, index: usize) -> RopeSlice {
+        self.content.line(index)
+    }
+
     pub fn is_empty(&self) -> bool {
         self.content.len_bytes() == 0
     }
 
     pub fn filetype(&self) -> String {
         self.filetype.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::render::document::Document;
+
+    #[test]
+    fn test_line_len() {
+        // std::fs::File::open("./src/render/document.rs")?;
+        let doc = Document::open("./src/render/document.rs").unwrap();
+        println!("{}", doc.line(0));
+        println!("{}", doc.line_len(0));
     }
 }
