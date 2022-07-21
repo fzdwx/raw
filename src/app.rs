@@ -3,10 +3,10 @@ use std::error::Error;
 use std::ops::ControlFlow::Continue;
 use std::ops::Deref;
 
-use crate::args::Args;
 use crossterm::cursor::position;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
+use crate::args::Args;
 use crate::event::{flush_resize_events, Event, EventHandler};
 use crate::render::banner::Banner;
 use crate::render::switcher::DocumentSwitcher;
@@ -85,9 +85,7 @@ impl App {
     /// dispatch events.
     fn dispatch_events(&mut self) -> AppResult<()> {
         match self.events.next()? {
-            Event::Tick => {
-                // println!(".\r");
-            }
+            Event::Tick => {}
             Event::Key(event) => {
                 self.on_keypress(event);
             }
@@ -129,14 +127,14 @@ impl App {
             // }
 
             // move cursor
-            // (KeyCode::Up, _)
-            // | (KeyCode::Down, _)
-            // | (KeyCode::Left, _)
-            // | (KeyCode::Right, _)
-            // | (KeyCode::PageUp, _)
-            // | (KeyCode::PageDown, _)
-            // | (KeyCode::End, _)
-            // | (KeyCode::Home, _) => self.move_cursor(key.code),
+            (KeyCode::Up, _)
+            | (KeyCode::Down, _)
+            | (KeyCode::Left, _)
+            | (KeyCode::Right, _)
+            | (KeyCode::PageUp, _)
+            | (KeyCode::PageDown, _)
+            | (KeyCode::End, _)
+            | (KeyCode::Home, _) => self.move_cursor(key.code),
             (KeyCode::Left, modifier) => {
                 // switch buffer
                 if modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
@@ -144,9 +142,9 @@ impl App {
                 }
             }
 
-            (KeyCode::Right, keyModifier) => {
+            (KeyCode::Right, key_modifier) => {
                 // switch buffer
-                if keyModifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
+                if key_modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
                     self.doc_switcher.next();
                 }
             }
@@ -154,6 +152,12 @@ impl App {
             _ => {}
         };
     }
+
+    /// move cursor
+    fn move_cursor(&self, key_code: KeyCode) {
+        todo!()
+    }
+
     fn exit(&self) -> AppResult<()> {
         screen::exit()
     }
