@@ -76,7 +76,7 @@ impl Document {
 
     /// get line len.
     pub fn line_len(&self, index: usize) -> usize {
-        if index > self.len() {
+        if index >= self.len() {
             return 0;
         }
 
