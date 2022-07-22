@@ -21,8 +21,8 @@ release:
 test:
   cargo test
 
-test-l:
-   cargo test --color=always --package raw --lib 'render::document::tests::test_line_len' -- --exact -Z unstable-options --show-output
+t lib:
+   cargo test --color=always --package raw --lib '{{lib}}' -- --exact -Z unstable-options --show-output
 
 # lint 普通模式
 lint:

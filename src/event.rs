@@ -18,7 +18,6 @@ pub enum Event {
 }
 
 /// Terminal event handler.
-#[derive(Debug)]
 pub struct EventHandler {
     /// Event sender channel.
     sender: mpsc::Sender<Event>,

@@ -14,6 +14,7 @@ use crate::render::Render;
 use crate::{DEFAULT_FILENAME, DEFAULT_FILETYPE};
 
 /// the document
+#[derive(Debug)]
 pub struct Document {
     pub content: Rope,
     name: String,
