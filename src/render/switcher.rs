@@ -6,6 +6,7 @@ use tui::layout::Rect;
 
 use crate::render::document::Document;
 use crate::render::extend::RectEx;
+use crate::render::message::MessageBar;
 use crate::render::status_line::StatusLine;
 use crate::render::Render;
 
@@ -14,6 +15,7 @@ pub struct DocumentSwitcher {
     index: usize,
     empty: bool,
     status_line: StatusLine,
+    message_bar: MessageBar,
 }
 
 impl Render for DocumentSwitcher {
@@ -22,13 +24,16 @@ impl Render for DocumentSwitcher {
     }
 
     fn render(&mut self, ctx: AppCtx, buf: &mut Buffer, area: Rect) {
+        let should_render_message_bar = self.message_bar.should_render();
+
         self.current_mut()
             .unwrap()
-            .render(ctx, buf, area.to_document());
+            .render(ctx, buf, area.to_document(should_render_message_bar));
 
         let current = self.current().unwrap();
         self.status_line.refresh(current.name(), current.filetype());
         self.status_line.render(ctx, buf, area.to_status_line());
+        self.message_bar.render(ctx, buf, area.to_message_bar());
     }
 }
 
@@ -39,12 +44,27 @@ impl DocumentSwitcher {
             index: 0,
             empty: true,
             status_line: StatusLine::default(),
+            message_bar: MessageBar::default(),
         }
     }
 
     /// check
     pub fn is_empty(&self) -> bool {
         self.empty
+    }
+
+    /// a
+    pub fn get_bottom_height(&self) -> usize {
+        // 索引从0开始   +1
+        // status_line +1
+        let mut bottom_height: usize = 2; //
+
+        if self.message_bar.should_render() {
+            // should render message +1
+            bottom_height = bottom_height.saturating_add(1);
+        }
+
+        bottom_height
     }
 
     /// get current document (row.len,doc.len)

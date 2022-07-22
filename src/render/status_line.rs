@@ -18,6 +18,42 @@ pub struct StatusLine {
     fg: Style,
 }
 
+impl Render for StatusLine {
+    fn name(&self) -> String {
+        "status line".to_string()
+    }
+
+    fn render(&mut self, ctx: AppCtx, buf: &mut Buffer, area: Rect) {
+        self.render_bg(buf, area);
+
+        let chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Percentage(20),
+                Constraint::Percentage(60),
+                Constraint::Percentage(20),
+            ])
+            .split(area);
+
+        self.render_filename(buf, chunks[0]);
+        self.render_position(buf, chunks[1], ctx);
+        self.render_filetype(buf, chunks[2]);
+    }
+}
+
+impl Default for StatusLine {
+    fn default() -> Self {
+        Self {
+            filename: DEFAULT_FILENAME.to_string(),
+            filetype: DEFAULT_FILETYPE.to_string(),
+            bg: Style::default().bg(Color::Rgb(124, 252, 200)), // .bg(Color::Rgb(201, 123, 193)),
+            fg: Style::default()
+                .fg(Color::Rgb(30, 30, 46))
+                .add_modifier(Modifier::BOLD), //.fg(Color::Rgb(30, 30, 46)),
+        }
+    }
+}
+
 impl StatusLine {
     pub fn refresh(&mut self, name: String, file_type: String) {
         self.filename = name;
@@ -75,41 +111,5 @@ impl StatusLine {
             .style(self.fg)
             .alignment(Alignment::Right)
             .render(area, buf);
-    }
-}
-
-impl Render for StatusLine {
-    fn name(&self) -> String {
-        "status line".to_string()
-    }
-
-    fn render(&mut self, ctx: AppCtx, buf: &mut Buffer, area: Rect) {
-        self.render_bg(buf, area);
-
-        let chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([
-                Constraint::Percentage(20),
-                Constraint::Percentage(60),
-                Constraint::Percentage(20),
-            ])
-            .split(area);
-
-        self.render_filename(buf, chunks[0]);
-        self.render_position(buf, chunks[1], ctx);
-        self.render_filetype(buf, chunks[2]);
-    }
-}
-
-impl Default for StatusLine {
-    fn default() -> Self {
-        Self {
-            filename: DEFAULT_FILENAME.to_string(),
-            filetype: DEFAULT_FILETYPE.to_string(),
-            bg: Style::default().bg(Color::Rgb(124, 252, 200)), // .bg(Color::Rgb(201, 123, 193)),
-            fg: Style::default()
-                .fg(Color::Rgb(30, 30, 46))
-                .add_modifier(Modifier::BOLD), //.fg(Color::Rgb(30, 30, 46)),
-        }
     }
 }

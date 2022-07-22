@@ -5,6 +5,7 @@ use tui::layout::Rect;
 pub mod banner;
 pub mod document;
 pub mod extend;
+pub mod message;
 pub mod status_line;
 pub mod switcher;
 

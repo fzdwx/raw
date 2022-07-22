@@ -10,6 +10,7 @@ use crate::args::Args;
 use crate::event::{flush_resize_events, Event, EventHandler};
 use crate::render::banner::Banner;
 use crate::render::document::Document;
+use crate::render::message::MessageBar;
 use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
 use crate::screen::{Offset, Position, Screen};
@@ -214,8 +215,9 @@ impl App {
                     y = y.saturating_add(1);
                 }
             }
-            KeyCode::Home => {}
-            KeyCode::End => {}
+            // todo 获取这一行的第一个不是空格的idx
+            KeyCode::Home => x = 0,
+            KeyCode::End => x = doc_width,
             KeyCode::PageUp => {}
             KeyCode::PageDown => {}
             _ => {}
@@ -231,10 +233,9 @@ impl App {
             y = doc_height - 1
         }
 
-        // 索引是从0开始的,所以减1,
-        // 然后最后一栏留给status_line,所以在减2
-        if y > screen_height as usize - 2 {
-            y = (screen_height as usize - 2)
+        let bottom_height = self.doc_switcher.get_bottom_height();
+        if y > screen_height as usize - bottom_height {
+            y = (screen_height as usize - bottom_height)
         }
 
         self.relative = Position { x, y };
