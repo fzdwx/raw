@@ -1,10 +1,11 @@
 use std::borrow::Borrow;
 
-use crate::app::AppCtx;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
 
+use crate::app::AppCtx;
 use crate::extension::rect::RectEx;
+use crate::extension::rope::{Line, RopeSliceEx};
 use crate::render::document::Document;
 use crate::render::message::MessageBar;
 use crate::render::status_line::StatusLine;
@@ -67,7 +68,7 @@ impl DocumentSwitcher {
         bottom_height
     }
 
-    /// get current document (row.len,doc.len)
+    /// get current document (row.width,doc.len)
     pub fn current_doc_size(&self, row: usize) -> (usize, usize) {
         match self.current() {
             None => (0, 0),
@@ -75,8 +76,24 @@ impl DocumentSwitcher {
         }
     }
 
-    /// get current document row.len
-    pub fn current_doc_row_len(&self, row: usize) -> usize {
+    /// get current document height
+    pub fn current_doc_height(&self) -> usize {
+        match self.current() {
+            None => 0,
+            Some(doc) => doc.len(),
+        }
+    }
+
+    /// get current doc row to line
+    pub fn current_doc_row_to_line(&self, index: usize) -> Line {
+        match self.current() {
+            None => Line::default(),
+            Some(doc) => doc.line(index).to_line(),
+        }
+    }
+
+    /// get current document row.width
+    pub fn current_doc_row_width(&self, row: usize) -> usize {
         match self.current() {
             None => (0),
             Some(doc) => (doc.line_len(row)),

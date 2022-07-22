@@ -190,7 +190,7 @@ impl App {
                     x = x.saturating_sub(1);
                 } else if y > 0 {
                     y = y.saturating_sub(1);
-                    x = self.doc_switcher.current_doc_row_len(y)
+                    x = doc_width
                 }
             }
             KeyCode::Right => {
@@ -225,7 +225,7 @@ impl App {
             _ => {}
         }
 
-        let doc_width = self.doc_switcher.current_doc_row_len(y);
+        let doc_width = self.doc_switcher.current_doc_row_width(y);
         if x > doc_width {
             x = doc_width;
         }

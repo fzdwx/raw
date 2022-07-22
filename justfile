@@ -4,7 +4,7 @@ run:
    cargo run
 
 rm:
-   RUST_BACKTRACE=1 cargo run README.md justfile LICENSE
+   RUST_BACKTRACE=full cargo run README.md justfile LICENSE
 
 rb:
     ./target/release/raw
