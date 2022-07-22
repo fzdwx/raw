@@ -1,5 +1,8 @@
+use ropey::iter::Chunks;
+use ropey::str_utils::byte_to_char_idx;
 use ropey::RopeSlice;
-use unicode_segmentation::UnicodeSegmentation;
+use unicode_segmentation::{GraphemeCursor, GraphemeIncomplete, UnicodeSegmentation};
+use unicode_width::UnicodeWidthStr;
 
 pub trait RopeSliceEx<'a> {
     /// repo slice to string
@@ -9,6 +12,13 @@ pub trait RopeSliceEx<'a> {
 
     /// O(n) get len
     fn len_word_boundary(&self) -> usize;
+}
+
+#[derive(Default)]
+pub struct Line {
+    pub width_mapping: Vec<usize>,
+    pub str_list: Vec<String>,
+    pub width: usize,
 }
 
 impl<'a> RopeSliceEx<'a> for RopeSlice<'a> {
@@ -44,13 +54,6 @@ impl<'a> RopeSliceEx<'a> for RopeSlice<'a> {
 
         width
     }
-}
-
-#[derive(Default)]
-pub struct Line {
-    pub width_mapping: Vec<usize>,
-    pub str_list: Vec<String>,
-    pub width: usize,
 }
 
 impl ToString for Line {

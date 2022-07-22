@@ -38,7 +38,7 @@ impl Render for Document {
             };
 
             // todo 是不是太暴力了.
-            buf.set_string(0, x, line.get_string(), Style::default());
+            buf.set_string(0, x, line.to_line().to_string(), Style::default());
             x += 1;
         }
     }
