@@ -226,13 +226,15 @@ impl App {
             x = doc_width;
         }
 
-        // 索引是从0开始的,所以减1
+        // 索引是从0开始的,所以减1,
         if y > doc_height - 1 {
             y = doc_height - 1
         }
 
-        if y > screen_height as usize {
-            y = (screen_height as usize - 1)
+        // 索引是从0开始的,所以减1,
+        // 然后最后一栏留给status_line,所以在减2
+        if y > screen_height as usize - 2 {
+            y = (screen_height as usize - 2)
         }
 
         self.relative = Position { x, y };
