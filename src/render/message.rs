@@ -9,6 +9,7 @@ use tui::widgets::{Paragraph, Widget};
 pub struct MessageBar {
     content: String,
     time: Instant,
+    // Continuous display time, default 3 seconds
     delay: Duration,
 }
 
@@ -50,7 +51,7 @@ impl MessageBar {
 
 impl Default for MessageBar {
     fn default() -> Self {
-        MessageBar::from("")
+        MessageBar::from("11111111")
     }
 }
 

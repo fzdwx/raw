@@ -87,7 +87,7 @@ impl App {
     /// run app
     pub fn run(&mut self) -> AppResult<()> {
         while self.running {
-            self.draw_some();
+            self.refresh_screen();
 
             if let Err(err) = self.dispatch_events() {
                 exit_with_err(err)
@@ -100,7 +100,7 @@ impl App {
     /// dispatch events.
     fn dispatch_events(&mut self) -> AppResult<()> {
         match self.events.next()? {
-            Event::Tick => {}
+            Event::Tick => self.on_tick(),
             Event::Key(event) => {
                 self.on_keypress(event);
             }
@@ -117,7 +117,7 @@ impl App {
     }
 
     /// draw ui.
-    fn draw_some(&mut self) -> AppResult<()> {
+    fn refresh_screen(&mut self) -> AppResult<()> {
         let ctx = self.new_ctx();
         let buf = self.screen.get_buf();
         if self.doc_switcher.is_empty() {
@@ -173,6 +173,11 @@ impl App {
 
             _ => {}
         };
+    }
+
+    /// on tick event
+    fn on_tick(&mut self) {
+        self.refresh_screen().unwrap();
     }
 
     /// move cursor
