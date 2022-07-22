@@ -8,6 +8,9 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use crate::args::Args;
 use crate::event::{flush_resize_events, Event, EventHandler};
+use crate::extension::graphemes::{
+    next_grapheme_boundary, nth_prev_grapheme_boundary, prev_grapheme_boundary,
+};
 use crate::render::banner::Banner;
 use crate::render::document::Document;
 use crate::render::message::MessageBar;

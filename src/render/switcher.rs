@@ -1,3 +1,4 @@
+use ropey::RopeSlice;
 use std::borrow::Borrow;
 
 use tui::buffer::Buffer;
@@ -89,6 +90,14 @@ impl DocumentSwitcher {
         match self.current() {
             None => Line::default(),
             Some(doc) => doc.line(index).to_line(),
+        }
+    }
+
+    /// get current doc row
+    pub fn current_doc_row(&self, index: usize) -> RopeSlice {
+        match self.current() {
+            None => RopeSlice::from(""),
+            Some(doc) => doc.line(index),
         }
     }
 
