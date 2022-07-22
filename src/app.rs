@@ -158,7 +158,7 @@ impl App {
                 // switch buffer
                 if modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
                     self.doc_switcher.prev();
-                    // self.move_cursor(KeyCode::Null);
+                    self.move_cursor(KeyCode::Null);
                 }
             }
 
@@ -166,7 +166,7 @@ impl App {
                 // switch buffer
                 if key_modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
                     self.doc_switcher.next();
-                    // self.move_cursor(KeyCode::Null);
+                    self.move_cursor(KeyCode::Null);
                 }
             }
 
