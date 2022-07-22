@@ -1,6 +1,7 @@
 pub mod app;
 pub mod args;
 pub mod event;
+pub mod extension;
 pub mod render;
 pub mod screen;
 

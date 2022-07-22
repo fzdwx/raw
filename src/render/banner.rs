@@ -1,5 +1,5 @@
 use crate::app::AppCtx;
-use crate::render::extend::RopeSliceEx;
+use crate::extension::rope::RopeSliceEx;
 use crate::render::Render;
 use ropey::Rope;
 use tui::buffer::Buffer;
@@ -59,8 +59,8 @@ impl Render for Banner {
 
 #[cfg(test)]
 mod tests {
+    use crate::extension::rope::RopeSliceEx;
     use crate::render::banner::Banner;
-    use crate::render::extend::RopeSliceEx;
     use tui::layout::Alignment;
     use tui::widgets::Paragraph;
 

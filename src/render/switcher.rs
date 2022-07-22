@@ -4,8 +4,8 @@ use crate::app::AppCtx;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
 
+use crate::extension::rect::RectEx;
 use crate::render::document::Document;
-use crate::render::extend::RectEx;
 use crate::render::message::MessageBar;
 use crate::render::status_line::StatusLine;
 use crate::render::Render;

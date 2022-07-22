@@ -8,7 +8,7 @@ use tui::style::Style;
 use tui::text::Span;
 
 use crate::app::{AppCtx, AppResult};
-use crate::render::extend::RopeSliceEx;
+use crate::extension::rope::RopeSliceEx;
 use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
 use crate::{DEFAULT_FILENAME, DEFAULT_FILETYPE};

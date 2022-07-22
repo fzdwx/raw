@@ -1,4 +1,3 @@
-use ropey::RopeSlice;
 use tui::layout::Rect;
 
 pub trait RectEx {
@@ -7,16 +6,6 @@ pub trait RectEx {
     fn to_message_bar(self) -> Rect;
 
     fn height_sub(self, amount: u16) -> Rect;
-}
-
-pub trait RopeSliceEx<'a> {
-    fn get_string(&self) -> String;
-}
-
-impl<'a> RopeSliceEx<'a> for RopeSlice<'a> {
-    fn get_string(&self) -> String {
-        format!("{}", self)
-    }
 }
 
 impl RectEx for Rect {

@@ -87,7 +87,9 @@ impl App {
     /// run app
     pub fn run(&mut self) -> AppResult<()> {
         while self.running {
-            self.refresh_screen();
+            if let Err(err) = self.refresh_screen() {
+                exit_with_err(err)
+            }
 
             if let Err(err) = self.dispatch_events() {
                 exit_with_err(err)
@@ -104,13 +106,8 @@ impl App {
             Event::Key(event) => {
                 self.on_keypress(event);
             }
-            Event::Mouse(_) => {}
-            Event::Resize(x, y) => {
-                // let (original_size, new_size) = flush_resize_events(Event::Resize(x, y));
-                // if original_size != new_size {
-                //     println!("Resize from: {:?}, to: {:?}", original_size, new_size);
-                // };
-            }
+            // resize mouse discard
+            _ => {}
         }
 
         Ok(())

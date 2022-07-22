@@ -1,6 +1,6 @@
 use crate::app::AppCtx;
+use crate::extension::rect::RectEx;
 use crate::render::document::Document;
-use crate::render::extend::RectEx;
 use crate::render::Render;
 use crate::{DEFAULT_FILENAME, DEFAULT_FILETYPE};
 use std::fmt::format;
