@@ -80,13 +80,18 @@ impl Document {
             return 0;
         }
 
-        let usize = self.content.line(index).len_bytes();
-        if usize == 0 {
-            return usize;
+        let slice = self.content.line(index);
+
+        let line_len = slice.len_bytes();
+
+        // 如果这一行没有数据，或者没有换行,直接返回usize
+        let lines_count = slice.len_lines();
+        if line_len == 0 || lines_count == 0 || lines_count == 1 {
+            return line_len;
         }
 
         // todo 只是简单的-2(因为有/r/n)
-        usize - 2
+        line_len - 2
     }
 
     /// get line by index.

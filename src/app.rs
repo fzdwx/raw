@@ -201,7 +201,13 @@ impl App {
                 }
             }
             KeyCode::Up => {
-                y = y.saturating_sub(1);
+                // 支持在第一行向上移动时,跳到最后一行.
+                if y == 0 {
+                    y = doc_height;
+                } else {
+                    y = y.saturating_sub(1);
+                }
+                // y = y.saturating_sub(1);
             }
             KeyCode::Down => {
                 if y < doc_height {
