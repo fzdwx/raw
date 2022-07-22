@@ -80,8 +80,13 @@ impl Document {
             return 0;
         }
 
+        let usize = self.content.line(index).len_bytes();
+        if usize == 0 {
+            return usize;
+        }
+
         // todo 只是简单的-2(因为有/r/n)
-        self.content.line(index).len_bytes() - 2
+        usize - 2
     }
 
     /// get line by index.

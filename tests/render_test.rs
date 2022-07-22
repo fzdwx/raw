@@ -3,6 +3,18 @@ use raw::render::switcher::DocumentSwitcher;
 use raw::render::Render;
 
 #[test]
+fn test_license() {
+    let license = Document::open("./scr/../LICENSE").unwrap();
+    println!("size: {}", license.line(21).len_bytes());
+    println!("content: {}", license.line(21));
+
+    println!("==========");
+
+    println!("size: {}", license.line(20).len_bytes());
+    println!("content: {}", license.line(20));
+}
+
+#[test]
 fn test_doc() {
     let banner = Document::open("./src/banner").unwrap();
     println!("{:?}", banner.content.line(1));
@@ -10,7 +22,7 @@ fn test_doc() {
 
 #[test]
 fn test_render() {
-    let render = Document::open("E:\\project\\rtest\\src\\render.rs").unwrap();
+    let render = Document::open("./src/render.rs").unwrap();
     for line in render.content.lines() {
         print!("{}", format!("{}", line));
     }
