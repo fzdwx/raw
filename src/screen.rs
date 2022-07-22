@@ -21,14 +21,14 @@ pub struct Screen {
 
 impl Screen {}
 
-/// relative position of the current cursor
+/// the actual position of the current cursor
 #[derive(Copy, Clone, Default)]
 pub struct Offset {
-    pub x: u16,
-    pub y: u16,
+    pub x: usize,
+    pub y: usize,
 }
 
-/// the actual position of the current cursor
+/// relative position of the current cursor
 #[derive(Copy, Clone, Default)]
 pub struct Position {
     pub x: usize,

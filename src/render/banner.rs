@@ -1,3 +1,4 @@
+use crate::app::AppCtx;
 use crate::render::extend::RopeSliceEx;
 use crate::render::Render;
 use ropey::Rope;
@@ -23,7 +24,7 @@ impl Render for Banner {
         "banner".to_string()
     }
 
-    fn render(&mut self, buf: &mut Buffer, area: Rect) {
+    fn render(&mut self, ctx: AppCtx, buf: &mut Buffer, area: Rect) {
         let chunks = Layout::default()
             .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
             .direction(Direction::Vertical)
@@ -39,6 +40,7 @@ impl Render for Banner {
         let mut y = chunk.y;
         for p in contents {
             if y >= chunk.height {
+                // check for overflow
                 return;
             }
 

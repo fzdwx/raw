@@ -29,8 +29,20 @@ pub struct App {
     banner: Banner,
     // document container.
     doc_switcher: DocumentSwitcher,
-    relative: Offset,
-    actual: Position,
+    // actual position of the current cursor
+    actual: Offset,
+    // relative position of the current cursor(screen)
+    relative: Position,
+}
+
+#[derive(Clone, Copy)]
+pub struct AppCtx {
+    // actual position of the current cursor
+    pub actual: Offset,
+    // relative position of the current cursor(screen)
+    pub relative: Position,
+    // screen size
+    pub screen_size: (u16, u16),
 }
 
 impl App {
@@ -103,18 +115,19 @@ impl App {
 
     /// draw ui.
     fn draw_some(&mut self) -> AppResult<()> {
+        let ctx = self.new_ctx();
         let buf = self.screen.get_buf();
         if self.doc_switcher.is_empty() {
-            self.banner.render(buf, buf.area);
+            self.banner.render(ctx, buf, buf.area);
             self.screen.refresh()?;
 
             return Ok(());
         }
-        screen::move_to(self.actual)?;
+        screen::move_to(self.relative)?;
 
-        self.doc_switcher.render(buf, buf.area);
+        self.doc_switcher.render(ctx, buf, buf.area);
 
-        self.screen.refresh_and_set_cursor(self.actual)
+        self.screen.refresh_and_set_cursor(self.relative)
     }
 
     /// on key press
@@ -143,6 +156,7 @@ impl App {
                 // switch buffer
                 if modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
                     self.doc_switcher.prev();
+                    self.move_cursor(KeyCode::Left);
                 }
             }
 
@@ -150,6 +164,7 @@ impl App {
                 // switch buffer
                 if key_modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
                     self.doc_switcher.next();
+                    self.move_cursor(KeyCode::Left);
                 }
             }
 
@@ -159,7 +174,7 @@ impl App {
 
     /// move cursor
     fn move_cursor(&mut self, key_code: KeyCode) {
-        let Position { mut x, mut y } = self.actual;
+        let Position { mut x, mut y } = self.relative;
         let (screen_width, screen_height) = screen::size().unwrap();
         let (doc_width, doc_height) = self.doc_switcher.current_doc_size(y);
 
@@ -203,15 +218,27 @@ impl App {
             x = doc_width;
         }
 
-        if y == doc_height && doc_width != 0 {
-            y -= 1;
+        if y > doc_height {
+            y = doc_height
         }
 
-        self.actual = Position { x, y };
+        if y > screen_height as usize {
+            y = (screen_height as usize - 1)
+        }
+
+        self.relative = Position { x, y };
     }
 
     fn exit(&self) -> AppResult<()> {
         screen::exit()
+    }
+
+    fn new_ctx(&self) -> AppCtx {
+        AppCtx {
+            actual: self.actual,
+            relative: self.relative,
+            screen_size: screen::size().unwrap(),
+        }
     }
 }
 

@@ -7,7 +7,7 @@ use tui::layout::Rect;
 use tui::style::Style;
 use tui::text::Span;
 
-use crate::app::AppResult;
+use crate::app::{AppCtx, AppResult};
 use crate::render::extend::RopeSliceEx;
 use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
@@ -25,7 +25,7 @@ impl Render for Document {
         self.name.clone()
     }
 
-    fn render(&mut self, buf: &mut Buffer, area: Rect) {
+    fn render(&mut self, ctx: AppCtx, buf: &mut Buffer, area: Rect) {
         if self.is_empty() {
             return;
         }

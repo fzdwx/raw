@@ -1,3 +1,4 @@
+use crate::app::AppCtx;
 use crate::render::document::Document;
 use crate::render::extend::RectEx;
 use crate::render::Render;
@@ -35,6 +36,35 @@ impl StatusLine {
             .render(area, buf);
     }
 
+    fn render_position(&self, buf: &mut Buffer, area: Rect, ctx: AppCtx) {
+        let chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Percentage(33),
+                Constraint::Percentage(33),
+                Constraint::Percentage(33),
+            ])
+            .split(area);
+
+        Paragraph::new(format!(
+            "screen {}:{}",
+            ctx.screen_size.0, ctx.screen_size.1
+        ))
+        .style(self.fg)
+        .alignment(Alignment::Left)
+        .render(chunks[0], buf);
+
+        Paragraph::new(format!("relative {}:{}", ctx.relative.y, ctx.relative.x))
+            .style(self.fg)
+            .alignment(Alignment::Center)
+            .render(chunks[1], buf);
+
+        Paragraph::new(format!("actual {}:{}", ctx.actual.y, ctx.actual.x))
+            .style(self.fg)
+            .alignment(Alignment::Right)
+            .render(chunks[2], buf);
+    }
+
     fn render_filetype(&self, buf: &mut Buffer, area: Rect) {
         Paragraph::new(self.filetype.as_str())
             .style(self.fg)
@@ -48,19 +78,20 @@ impl Render for StatusLine {
         "status line".to_string()
     }
 
-    fn render(&mut self, buf: &mut Buffer, area: Rect) {
+    fn render(&mut self, ctx: AppCtx, buf: &mut Buffer, area: Rect) {
         self.render_bg(buf, area);
 
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
-                Constraint::Percentage(30),
                 Constraint::Percentage(20),
-                Constraint::Percentage(30),
+                Constraint::Percentage(60),
+                Constraint::Percentage(20),
             ])
             .split(area);
 
         self.render_filename(buf, chunks[0]);
+        self.render_position(buf, chunks[1], ctx);
         self.render_filetype(buf, chunks[2]);
     }
 }

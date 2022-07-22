@@ -1,5 +1,6 @@
 use std::borrow::Borrow;
 
+use crate::app::AppCtx;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
 
@@ -20,12 +21,14 @@ impl Render for DocumentSwitcher {
         self.current().unwrap().name()
     }
 
-    fn render(&mut self, buf: &mut Buffer, area: Rect) {
-        self.current_mut().unwrap().render(buf, area.to_document());
+    fn render(&mut self, ctx: AppCtx, buf: &mut Buffer, area: Rect) {
+        self.current_mut()
+            .unwrap()
+            .render(ctx, buf, area.to_document());
 
         let current = self.current().unwrap();
         self.status_line.refresh(current.name(), current.filetype());
-        self.status_line.render(buf, area.to_status_line());
+        self.status_line.render(ctx, buf, area.to_status_line());
     }
 }
 

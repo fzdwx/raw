@@ -1,3 +1,4 @@
+use crate::app::AppCtx;
 use tui::buffer::Buffer;
 use tui::layout::Rect;
 
@@ -24,8 +25,9 @@ pub trait Render {
     ///use tui::buffer::Buffer;
     /// use tui::layout::Rect;
     /// use tui::style::Style;
+    /// use raw::app::AppCtx;
     ///
-    /// fn render(&self, buf: &mut Buffer, area: Rect) {
+    /// fn render(&self, ctx: AppCtx,buf: &mut Buffer, area: Rect) {
     ///        if self.is_empty() {
     ///            return;
     ///        }
@@ -42,5 +44,5 @@ pub trait Render {
     ///        }
     ///    }
     /// ```
-    fn render(&mut self, buf: &mut Buffer, area: Rect);
+    fn render(&mut self, ctx: AppCtx, buf: &mut Buffer, area: Rect);
 }
