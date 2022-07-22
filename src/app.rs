@@ -9,10 +9,11 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use crate::args::Args;
 use crate::event::{flush_resize_events, Event, EventHandler};
 use crate::render::banner::Banner;
+use crate::render::document::Document;
 use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
-use crate::screen;
 use crate::screen::{Offset, Position, Screen};
+use crate::{screen, DEFAULT_FILENAME, DEFAULT_FILETYPE};
 
 /// global result.
 pub type AppResult<T> = Result<T, anyhow::Error>;
@@ -43,6 +44,7 @@ pub struct AppCtx {
     pub relative: Position,
     // screen size
     pub screen_size: (u16, u16),
+    pub doc_size: (usize, usize),
 }
 
 impl App {
@@ -156,7 +158,7 @@ impl App {
                 // switch buffer
                 if modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
                     self.doc_switcher.prev();
-                    self.move_cursor(KeyCode::Left);
+                    // self.move_cursor(KeyCode::Null);
                 }
             }
 
@@ -164,7 +166,7 @@ impl App {
                 // switch buffer
                 if key_modifier == KeyModifiers::CONTROL | KeyModifiers::ALT {
                     self.doc_switcher.next();
-                    self.move_cursor(KeyCode::Left);
+                    // self.move_cursor(KeyCode::Null);
                 }
             }
 
@@ -218,8 +220,9 @@ impl App {
             x = doc_width;
         }
 
-        if y > doc_height {
-            y = doc_height
+        // 索引是从0开始的,所以减1
+        if y > doc_height - 1 {
+            y = doc_height - 1
         }
 
         if y > screen_height as usize {
@@ -234,10 +237,13 @@ impl App {
     }
 
     fn new_ctx(&self) -> AppCtx {
+        let doc_size = self.doc_switcher.current_doc_size(self.relative.y);
+
         AppCtx {
             actual: self.actual,
             relative: self.relative,
             screen_size: screen::size().unwrap(),
+            doc_size,
         }
     }
 }

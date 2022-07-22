@@ -16,7 +16,6 @@ pub struct StatusLine {
     filetype: String,
     bg: Style,
     fg: Style,
-    // todo position
 }
 
 impl StatusLine {
@@ -40,9 +39,10 @@ impl StatusLine {
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
-                Constraint::Percentage(33),
-                Constraint::Percentage(33),
-                Constraint::Percentage(33),
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
             ])
             .split(area);
 
@@ -54,15 +54,20 @@ impl StatusLine {
         .alignment(Alignment::Left)
         .render(chunks[0], buf);
 
-        Paragraph::new(format!("relative {}:{}", ctx.relative.y, ctx.relative.x))
+        Paragraph::new(format!("doc size {}:{}", ctx.doc_size.1, ctx.doc_size.0))
             .style(self.fg)
             .alignment(Alignment::Center)
             .render(chunks[1], buf);
 
+        Paragraph::new(format!("relative {}:{}", ctx.relative.y, ctx.relative.x))
+            .style(self.fg)
+            .alignment(Alignment::Center)
+            .render(chunks[2], buf);
+
         Paragraph::new(format!("actual {}:{}", ctx.actual.y, ctx.actual.x))
             .style(self.fg)
             .alignment(Alignment::Right)
-            .render(chunks[2], buf);
+            .render(chunks[3], buf);
     }
 
     fn render_filetype(&self, buf: &mut Buffer, area: Rect) {
