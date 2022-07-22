@@ -95,7 +95,8 @@ pub fn init() -> AppResult<()> {
         stdout(),
         EnableMouseCapture,
         EnterAlternateScreen,
-        crossterm::cursor::EnableBlinking
+        crossterm::cursor::EnableBlinking,
+        crossterm::cursor::SetCursorShape(crossterm::cursor::CursorShape::Line)
     )?;
     Ok(())
 }
