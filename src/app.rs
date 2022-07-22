@@ -16,7 +16,7 @@ use crate::render::document::Document;
 use crate::render::message::MessageBar;
 use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
-use crate::screen::{Offset, Position, Screen};
+use crate::screen::{Position, Screen};
 use crate::{screen, DEFAULT_FILENAME, DEFAULT_FILETYPE};
 
 /// global result.
@@ -34,18 +34,18 @@ pub struct App {
     banner: Banner,
     // document container.
     doc_switcher: DocumentSwitcher,
-    // actual position of the current cursor
-    actual: Offset,
-    // relative position of the current cursor(screen)
-    relative: Position,
+    // the offset on the (x,y)
+    offset: Position,
+    //   cursor position
+    cursor: Position,
 }
 
 #[derive(Clone, Copy)]
 pub struct AppCtx {
-    // actual position of the current cursor
-    pub actual: Offset,
-    // relative position of the current cursor(screen)
-    pub relative: Position,
+    // the offset on the (x,y)
+    pub offset: Position,
+    //   cursor position
+    pub cursor: Position,
     // screen size
     pub screen_size: (u16, u16),
     pub doc_size: (usize, usize),
@@ -82,8 +82,8 @@ impl App {
             screen: Default::default(),
             banner: Default::default(),
             doc_switcher,
-            actual: Default::default(),
-            relative: Default::default(),
+            offset: Default::default(),
+            cursor: Default::default(),
         }
     }
 
@@ -126,11 +126,11 @@ impl App {
 
             return Ok(());
         }
-        screen::move_to(self.relative)?;
+        screen::move_to(self.cursor)?;
 
         self.doc_switcher.render(ctx, buf, buf.area);
 
-        self.screen.refresh_and_set_cursor(self.relative)
+        self.screen.refresh_and_set_cursor(self.cursor)
     }
 
     /// on key press
@@ -182,7 +182,7 @@ impl App {
 
     /// move cursor
     fn move_cursor(&mut self, key_code: KeyCode) {
-        let Position { mut x, mut y } = self.relative;
+        let Position { mut x, mut y } = self.cursor;
         let (screen_width, screen_height) = screen::size().unwrap();
         let (doc_width, doc_height) = self.doc_switcher.current_doc_size(y);
 
@@ -243,7 +243,7 @@ impl App {
             y = (screen_height as usize - bottom_height)
         }
 
-        self.relative = Position { x, y };
+        self.cursor = Position { x, y };
     }
 
     fn exit(&self) -> AppResult<()> {
@@ -251,11 +251,11 @@ impl App {
     }
 
     fn new_ctx(&self) -> AppCtx {
-        let doc_size = self.doc_switcher.current_doc_size(self.relative.y);
+        let doc_size = self.doc_switcher.current_doc_size(self.cursor.y);
 
         AppCtx {
-            actual: self.actual,
-            relative: self.relative,
+            offset: self.offset,
+            cursor: self.cursor,
             screen_size: screen::size().unwrap(),
             doc_size,
         }

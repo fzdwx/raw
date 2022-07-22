@@ -95,12 +95,12 @@ impl StatusLine {
             .alignment(Alignment::Center)
             .render(chunks[1], buf);
 
-        Paragraph::new(format!("position {}:{}", ctx.relative.y, ctx.relative.x))
+        Paragraph::new(format!("position {}:{}", ctx.cursor.y, ctx.cursor.x))
             .style(self.fg)
             .alignment(Alignment::Center)
             .render(chunks[2], buf);
 
-        Paragraph::new(format!("offset {}:{}", ctx.actual.y, ctx.actual.x))
+        Paragraph::new(format!("offset {}:{}", ctx.offset.y, ctx.offset.x))
             .style(self.fg)
             .alignment(Alignment::Right)
             .render(chunks[3], buf);

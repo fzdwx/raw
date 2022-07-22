@@ -1,5 +1,4 @@
 use ropey::RopeSlice;
-use std::borrow::Borrow;
 
 use tui::buffer::Buffer;
 use tui::layout::Rect;
