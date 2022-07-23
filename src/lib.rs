@@ -1,3 +1,5 @@
+extern crate core;
+
 pub mod app;
 pub mod args;
 pub mod event;

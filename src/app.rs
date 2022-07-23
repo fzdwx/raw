@@ -11,6 +11,7 @@ use crate::event::{flush_resize_events, Event, EventHandler};
 use crate::extension::graphemes_ex::{
     next_grapheme_boundary, nth_prev_grapheme_boundary, prev_grapheme_boundary,
 };
+use crate::extension::rope::RopeSliceEx;
 use crate::render::banner::Banner;
 use crate::render::document::Document;
 use crate::render::message::MessageBar;
@@ -18,7 +19,6 @@ use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
 use crate::screen::{Position, Screen};
 use crate::{screen, DEFAULT_FILENAME, DEFAULT_FILETYPE};
-use crate::extension::rope::RopeSliceEx;
 
 /// global result.
 pub type AppResult<T> = Result<T, anyhow::Error>;
@@ -194,7 +194,6 @@ impl App {
         let row_width = rope_slice.len_chars();
         let line = rope_slice.to_line();
 
-
         /// todo 要获取下个字符的具体长度, 比如说如果是中文那么下一个就有可能不是直接+1
         match key_code {
             KeyCode::Left => {
@@ -222,7 +221,6 @@ impl App {
                 } else {
                     y = y.saturating_sub(1);
                 }
-                // y = y.saturating_sub(1);
             }
             KeyCode::Down => {
                 if y < doc_height {
@@ -248,13 +246,14 @@ impl App {
         }
 
         let bottom_height = self.doc_switcher.get_bottom_height();
-        if y > screen_height as usize - bottom_height {
-            y = screen_height as usize - bottom_height
-        }
+        // if y > screen_height as usize - bottom_height {
+        //     y = screen_height as usize - bottom_height
+        // }
 
         self.cursor = Position { x, y };
         // todo scroll
-        self.offset = Position { x: line.get_offset(x),y }
+        self.offset = Position { x: line.get_offset(x), y };
+        self.cursor.scroll(self.offset, bottom_height);
     }
 
     fn exit(&self) -> AppResult<()> {
