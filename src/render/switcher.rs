@@ -184,11 +184,8 @@ impl DocumentSwitcher {
     /// load files
     pub fn load(&mut self, filenames: Vec<String>) {
         for filename in filenames {
-            match Document::open(filename.as_str()) {
-                Ok(doc) => self.add(doc),
-                Err(_) => {
-                    // todo file not found error,collect it,return to app
-                }
+            if let Ok(doc) = Document::open(filename.as_str()) {
+                self.add(doc)
             }
         }
     }

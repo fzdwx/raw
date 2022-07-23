@@ -279,18 +279,11 @@ impl App {
             y = doc_height - 1
         }
 
-        let bottom_height = self.doc_switcher.get_bottom_height();
-        // if y > screen_height as usize - bottom_height {
-        //     y = screen_height as usize - bottom_height
-        // }
-
         self.cursor = Position { x, y };
-        // todo scroll
         self.offset = Position {
             x: line.get_offset(x),
             y,
         };
-        self.cursor.scroll(self.offset, bottom_height);
     }
 
     fn exit(&self) -> AppResult<()> {

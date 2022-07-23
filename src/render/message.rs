@@ -41,7 +41,7 @@ impl MessageBar {
 
     /// should render message bar
     pub fn should_render(&self) -> bool {
-        if self.content.len() == 0 {
+        if self.content.is_empty() {
             return false;
         }
 

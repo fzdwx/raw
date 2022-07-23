@@ -1,17 +1,12 @@
-use std::borrow::Borrow;
-
-use anyhow::Context;
-use ropey::{Rope, RopeBuilder, RopeSlice};
+use ropey::{Rope, RopeSlice};
 use tui::buffer::Buffer;
 use tui::layout::Rect;
 use tui::style::Style;
-use tui::text::Span;
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
 use crate::app::{AppCtx, AppResult};
 use crate::extension::rope::RopeSliceEx;
-use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
 use crate::{DEFAULT_FILENAME, DEFAULT_FILETYPE};
 
@@ -33,20 +28,19 @@ impl Render for Document {
             return;
         }
 
-        let mut x = 0;
-        for line in self
+        for (x, line) in self
             .content
             .lines()
             .skip(ctx.cal_offset_y())
             .take(area.height as usize)
+            .enumerate()
         {
-            if x >= area.height {
+            if x >= area.height as usize {
                 return;
             };
 
             // todo 是不是太暴力了.
-            buf.set_string(0, x, line.to_line().to_string(), Style::default());
-            x += 1;
+            buf.set_string(0, x as u16, line.to_line().to_string(), Style::default());
         }
     }
 }

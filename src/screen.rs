@@ -6,7 +6,6 @@ use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-    Result,
 };
 use tui::backend::CrosstermBackend;
 use tui::buffer::Buffer;
@@ -28,23 +27,6 @@ pub struct Position {
     pub y: usize,
 }
 
-impl Position {
-    pub fn scroll(&mut self, cursor: Position, bottom_height: usize) {
-        let (w, h) = size().unwrap();
-        if cursor.y < self.y {
-            self.y = cursor.y;
-        } else if cursor.y >= self.y.saturating_add(h as usize) {
-            self.y = cursor.y.saturating_sub(h as usize).saturating_add(1);
-        }
-        //
-        // // if cursor.x < self.x {
-        // //     self.x = cursor.x;
-        // // } else if cursor.x >= self.x.saturating_add(w) {
-        // //     self.x = cursor.x.saturating_sub(w).saturating_add(1);
-        // // }
-    }
-}
-
 impl Default for Screen {
     fn default() -> Self {
         Self {
@@ -56,7 +38,7 @@ impl Default for Screen {
 impl Screen {
     /// refresh screen
     pub fn refresh(&mut self) -> AppResult<()> {
-        self.terminal.draw(|frame| {})?;
+        self.terminal.draw(|_frame| {})?;
 
         Ok(())
     }

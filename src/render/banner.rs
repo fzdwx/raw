@@ -4,8 +4,7 @@ use crate::render::Render;
 use ropey::Rope;
 use tui::buffer::Buffer;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use tui::style::Style;
-use tui::widgets::{Paragraph, Widget, Wrap};
+use tui::widgets::{Paragraph, Widget};
 
 /// banner (welcome message)
 pub struct Banner {

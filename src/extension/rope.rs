@@ -30,7 +30,9 @@ impl Line {
             // 当做最后一个字符处理
             if let Some(str) = self.str_list.get(x.saturating_sub(1)) {
                 str.width() + self.get_offset(x.saturating_sub(1))
-            } else { 0 }
+            } else {
+                0
+            }
         }
     }
 }
@@ -42,7 +44,6 @@ impl<'a> RopeSliceEx<'a> for RopeSlice<'a> {
 
     fn to_line(&self) -> Line {
         let mut width = 0;
-        let mut raw_width = 0;
         let mut str_list = Vec::new();
         let mut offset_mapping = Vec::new();
         for str in self.get_string().graphemes(true) {
@@ -50,7 +51,6 @@ impl<'a> RopeSliceEx<'a> for RopeSlice<'a> {
             let raw_len = str.width();
             offset_mapping.push(width);
             width += raw_len;
-            raw_width += raw_len;
         }
 
         Line {

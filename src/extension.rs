@@ -8,12 +8,13 @@ pub mod rect;
 /// the extension for [`ropey::RopeSlice`]
 pub mod rope;
 
+#[cfg(tests)]
 mod tests {
+    use crate::extension::graphemes_ex::next_grapheme_boundary;
     use crate::extension::rope::RopeSliceEx;
     use crate::render::document::Document;
     use unicode_segmentation::{GraphemeCursor, GraphemeIncomplete, UnicodeSegmentation};
     use unicode_width::UnicodeWidthStr;
-    use crate::extension::graphemes_ex::next_grapheme_boundary;
 
     #[test]
     fn test_boundary() {

@@ -1,14 +1,10 @@
 use crate::app::AppCtx;
-use crate::extension::rect::RectEx;
-use crate::render::document::Document;
 use crate::render::Render;
 use crate::{DEFAULT_FILENAME, DEFAULT_FILETYPE};
-use std::fmt::format;
-use std::fs::FileType;
 use tui::buffer::Buffer;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, Paragraph, Widget, Wrap};
+use tui::widgets::{Paragraph, Widget};
 
 /// status line render.
 pub struct StatusLine {
