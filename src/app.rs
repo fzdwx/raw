@@ -18,6 +18,7 @@ use crate::render::switcher::DocumentSwitcher;
 use crate::render::Render;
 use crate::screen::{Position, Screen};
 use crate::{screen, DEFAULT_FILENAME, DEFAULT_FILETYPE};
+use crate::extension::rope::RopeSliceEx;
 
 /// global result.
 pub type AppResult<T> = Result<T, anyhow::Error>;
@@ -34,9 +35,9 @@ pub struct App {
     banner: Banner,
     // document container.
     doc_switcher: DocumentSwitcher,
-    // the offset on the (x,y)
+    /// the offset on the (x,y)
     offset: Position,
-    //   cursor position
+    ///   cursor position
     cursor: Position,
 }
 
@@ -126,11 +127,11 @@ impl App {
 
             return Ok(());
         }
-        screen::move_to(self.cursor)?;
+        screen::move_to(self.offset)?;
 
         self.doc_switcher.render(ctx, buf, buf.area);
 
-        self.screen.refresh_and_set_cursor(self.cursor)
+        self.screen.refresh_and_set_cursor(self.offset)
     }
 
     /// on key press
@@ -183,8 +184,16 @@ impl App {
     /// move cursor
     fn move_cursor(&mut self, key_code: KeyCode) {
         let Position { mut x, mut y } = self.cursor;
+        let offset = self.offset;
         let (screen_width, screen_height) = screen::size().unwrap();
-        let (doc_width, doc_height) = self.doc_switcher.current_doc_size(y);
+
+        // row
+        let rope_slice = self.doc_switcher.current_doc_row(y);
+        let doc_height = self.doc_switcher.current_doc_height();
+        let doc_width = rope_slice.len_word_boundary();
+        let row_width = rope_slice.len_chars();
+        let line = rope_slice.to_line();
+
 
         /// todo 要获取下个字符的具体长度, 比如说如果是中文那么下一个就有可能不是直接+1
         match key_code {
@@ -228,9 +237,9 @@ impl App {
             _ => {}
         }
 
-        let doc_width = self.doc_switcher.current_doc_row_width(y);
-        if x > doc_width {
-            x = doc_width;
+        let current_row_width = self.doc_switcher.current_doc_row(y).len_word_boundary();
+        if x > current_row_width {
+            x = current_row_width;
         }
 
         // 索引是从0开始的,所以减1,
@@ -244,6 +253,7 @@ impl App {
         }
 
         self.cursor = Position { x, y };
+        self.offset = Position { x: line.get_offset(x),y }
     }
 
     fn exit(&self) -> AppResult<()> {

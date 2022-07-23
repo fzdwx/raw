@@ -16,9 +16,23 @@ pub trait RopeSliceEx<'a> {
 
 #[derive(Default)]
 pub struct Line {
-    pub width_mapping: Vec<usize>,
+    pub offset_mapping: Vec<usize>,
     pub str_list: Vec<String>,
     pub width: usize,
+}
+
+impl Line {
+    /// 获取x在当前行中的开头的offset
+    pub fn get_offset(&self, x: usize) -> usize {
+        if let Some(offset) = self.offset_mapping.get(x) {
+            *offset
+        } else {
+            // 当做最后一个字符处理
+            if let Some(str) = self.str_list.get(x - 1) {
+                str.width() + self.get_offset(x - 1)
+            } else { 0 }
+        }
+    }
 }
 
 impl<'a> RopeSliceEx<'a> for RopeSlice<'a> {
@@ -30,22 +44,25 @@ impl<'a> RopeSliceEx<'a> for RopeSlice<'a> {
         let mut width = 0;
         let mut raw_width = 0;
         let mut str_list = Vec::new();
-        let mut width_mapping = Vec::new();
+        let mut offset_mapping = Vec::new();
         for str in self.get_string().graphemes(true) {
             str_list.push(str.to_string());
-            let raw_len = str.len();
-            width_mapping.push(width);
+            let raw_len = str.width();
+            offset_mapping.push(width);
             width += raw_len;
             raw_width += raw_len;
         }
 
         Line {
-            width_mapping,
+            offset_mapping,
             str_list,
             width,
         }
     }
 
+    /// 获取当前line 的长度，根据字素簇边界分割
+    /// 1  => 1
+    /// 你 => 1
     fn len_word_boundary(&self) -> usize {
         let mut width = 0;
         for _ in self.get_string().graphemes(true) {

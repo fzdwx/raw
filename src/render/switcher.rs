@@ -72,11 +72,11 @@ impl DocumentSwitcher {
     pub fn current_doc_size(&self, row: usize) -> (usize, usize) {
         match self.current() {
             None => (0, 0),
-            Some(doc) => (doc.line_len(row), doc.len()),
+            Some(doc) => (doc.line_width(row), doc.len()),
         }
     }
 
-    /// get current document height
+    /// 获取当前document的高度
     pub fn current_doc_height(&self) -> usize {
         match self.current() {
             None => 0,
@@ -84,7 +84,7 @@ impl DocumentSwitcher {
         }
     }
 
-    /// get current doc row to line
+    /// 获取指定行并转换为line
     pub fn current_doc_row_to_line(&self, index: usize) -> Line {
         match self.current() {
             None => Line::default(),
@@ -92,7 +92,7 @@ impl DocumentSwitcher {
         }
     }
 
-    /// get current doc row
+    /// 获取指定行
     pub fn current_doc_row(&self, index: usize) -> RopeSlice {
         match self.current() {
             None => RopeSlice::from(""),
@@ -100,11 +100,11 @@ impl DocumentSwitcher {
         }
     }
 
-    /// get current document row.width
-    pub fn current_doc_row_width(&self, row: usize) -> usize {
+    /// 获取指定行的长度，根据字素簇边界分割
+    pub fn get_row_width_split_by_word_boundary(&self, row: usize) -> usize {
         match self.current() {
             None => (0),
-            Some(doc) => (doc.line_len(row)),
+            Some(doc) => (doc.line_width(row)),
         }
     }
 

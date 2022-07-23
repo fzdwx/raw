@@ -6,6 +6,8 @@ use tui::buffer::Buffer;
 use tui::layout::Rect;
 use tui::style::Style;
 use tui::text::Span;
+use unicode_segmentation::UnicodeSegmentation;
+use unicode_width::UnicodeWidthStr;
 
 use crate::app::{AppCtx, AppResult};
 use crate::extension::rope::RopeSliceEx;
@@ -83,7 +85,7 @@ impl Document {
 
         let slice = self.content.line(index);
 
-        let line_len = slice.len_bytes();
+        let line_len = slice.len_word_boundary();
 
         // 如果这一行没有数据，或者没有换行,直接返回usize
         let lines_count = slice.len_lines();
@@ -91,8 +93,23 @@ impl Document {
             return line_len;
         }
 
-        // todo 只是简单的-2(因为有/r/n)
-        line_len - 2
+        line_len - 1
+    }
+
+    /// 获取当前行的长度,使用width获取
+    /// 1  => 1
+    /// 你 => 2
+    pub fn line_width(&self, index: usize) -> usize {
+        if index >= self.len() {
+            return 0;
+        }
+
+        let slice = self.content.line(index);
+        let mut raw_width = 0;
+        for str in slice.get_string().graphemes(true) {
+            raw_width += str.width();
+        }
+        raw_width
     }
 
     /// get line by index.

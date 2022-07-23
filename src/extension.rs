@@ -59,15 +59,15 @@ mod tests {
         println!("{}", slice.slice(3..4)); // 🔬
         println!("{}", slice.slice(4..7));
 
-        println!("{}", line.width_mapping.get(0).unwrap());
+        println!("{}", line.offset_mapping.get(0).unwrap());
         println!("{}", line.str_list.get(0).unwrap());
-        println!("{}", line.width_mapping.get(1).unwrap());
+        println!("{}", line.offset_mapping.get(1).unwrap());
         println!("{}", line.str_list.get(1).unwrap());
-        println!("{}", line.width_mapping.get(2).unwrap());
+        println!("{}", line.offset_mapping.get(2).unwrap());
         println!("{}", line.str_list.get(2).unwrap());
-        println!("{}", line.width_mapping.get(3).unwrap());
+        println!("{}", line.offset_mapping.get(3).unwrap());
         println!("{}", line.str_list.get(3).unwrap());
-        println!("{}", line.width_mapping.get(4).unwrap());
+        println!("{}", line.offset_mapping.get(4).unwrap());
         println!("{}", line.str_list.get(4).unwrap());
         println!("{}", line.to_string());
         // println!("{}", line.width);

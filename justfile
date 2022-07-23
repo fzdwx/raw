@@ -21,8 +21,11 @@ release:
 test:
   cargo test
 
-t lib:
+tl lib:
    cargo test --color=always --package raw --lib '{{lib}}' -- --exact -Z unstable-options --show-output
+
+t lib:
+   cargo test --color=always --package raw --test '{{lib}}' -- --exact -Z unstable-options --show-output
 
 # lint 普通模式
 lint:
