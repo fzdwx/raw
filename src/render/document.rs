@@ -114,7 +114,11 @@ impl Document {
 
     /// get line by index.
     pub fn line(&self, index: usize) -> RopeSlice {
-        self.content.line(index)
+        if let Some(line) = self.content.get_line(index) {
+            line
+        } else {
+            RopeSlice::from("")
+        }
     }
 
     pub fn is_empty(&self) -> bool {

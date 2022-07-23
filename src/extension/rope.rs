@@ -28,8 +28,8 @@ impl Line {
             *offset
         } else {
             // 当做最后一个字符处理
-            if let Some(str) = self.str_list.get(x - 1) {
-                str.width() + self.get_offset(x - 1)
+            if let Some(str) = self.str_list.get(x.saturating_sub(1)) {
+                str.width() + self.get_offset(x.saturating_sub(1))
             } else { 0 }
         }
     }

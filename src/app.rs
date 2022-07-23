@@ -253,6 +253,7 @@ impl App {
         }
 
         self.cursor = Position { x, y };
+        // todo scroll
         self.offset = Position { x: line.get_offset(x),y }
     }
 
