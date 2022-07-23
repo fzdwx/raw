@@ -89,7 +89,7 @@ pub fn init() -> AppResult<()> {
         EnableMouseCapture,
         EnterAlternateScreen,
         crossterm::cursor::EnableBlinking,
-        crossterm::cursor::SetCursorShape(crossterm::cursor::CursorShape::Line)
+        crossterm::cursor::SetCursorShape(crossterm::cursor::CursorShape::Block)
     )?;
     Ok(())
 }
@@ -100,7 +100,8 @@ pub fn exit() -> AppResult<()> {
         stdout(),
         DisableMouseCapture,
         LeaveAlternateScreen,
-        Clear(All)
+        Clear(All),
+         crossterm::cursor::SetCursorShape(crossterm::cursor::CursorShape::Block)
     )?;
 
     disable_raw_mode()?;

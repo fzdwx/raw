@@ -8,7 +8,7 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use crate::args::Args;
 use crate::event::{flush_resize_events, Event, EventHandler};
-use crate::extension::graphemes::{
+use crate::extension::graphemes_ex::{
     next_grapheme_boundary, nth_prev_grapheme_boundary, prev_grapheme_boundary,
 };
 use crate::render::banner::Banner;
@@ -240,7 +240,7 @@ impl App {
 
         let bottom_height = self.doc_switcher.get_bottom_height();
         if y > screen_height as usize - bottom_height {
-            y = (screen_height as usize - bottom_height)
+            y = screen_height as usize - bottom_height
         }
 
         self.cursor = Position { x, y };

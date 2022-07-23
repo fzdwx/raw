@@ -1,31 +1,11 @@
-use raw::render::document::Document;
-use raw::render::switcher::DocumentSwitcher;
+use raw::render::document::{Document};
 use raw::render::Render;
-
-#[test]
-fn test_license() {
-    let license = Document::open("./scr/../LICENSE").unwrap();
-    println!("size: {}", license.line(21).len_bytes());
-    println!("content: {}", license.line(21));
-
-    println!("==========");
-
-    println!("size: {}", license.line(20).len_bytes());
-    println!("content: {}", license.line(20));
-}
+use raw::render::switcher::DocumentSwitcher;
 
 #[test]
 fn test_doc() {
     let banner = Document::open("./src/banner").unwrap();
     println!("{:?}", banner.content.line(1));
-}
-
-#[test]
-fn test_render() {
-    let render = Document::open("./src/render.rs").unwrap();
-    for line in render.content.lines() {
-        print!("{}", format!("{}", line));
-    }
 }
 
 #[test]
@@ -56,14 +36,14 @@ fn test_empty_add_text() {
 fn test_remove_and_add_and_size() {
     let mut container = DocumentSwitcher::default();
     container.add(Document::open("./src/banner").unwrap());
-    container.add(Document::open("./src/").unwrap());
+    container.add(Document::open("./src/screen.rs").unwrap());
 
     assert_eq!(container.size(), 2);
 
     assert_eq!(container.current().unwrap().name(), "./src/banner");
     container.remove_current();
 
-    assert_eq!(container.current().unwrap().name(), "./src/");
+    assert_eq!(container.current().unwrap().name(), "./src/screen.rs");
     container.remove_current();
 
     assert_eq!(container.is_empty(), true);
@@ -74,24 +54,24 @@ fn test_remove_and_add_and_size() {
 fn test_move() {
     let mut container = DocumentSwitcher::default();
     container.add(Document::open("./src/banner").unwrap());
-    container.add(Document::open("./src/").unwrap());
+    container.add(Document::open("./src/screen.rs").unwrap());
 
     container.prev();
 
-    assert_eq!(container.current().unwrap().name(), "./src/");
-    assert_eq!(container.name(), "./src/");
+    assert_eq!(container.current().unwrap().name(), "./src/screen.rs");
+    assert_eq!(container.name(), "./src/screen.rs");
     container.next();
     assert_eq!(container.current().unwrap().name(), "./src/banner");
     assert_eq!(container.name(), "./src/banner");
     container.next();
-    assert_eq!(container.current().unwrap().name(), "./src/");
-    assert_eq!(container.name(), "./src/");
+    assert_eq!(container.current().unwrap().name(), "./src/screen.rs");
+    assert_eq!(container.name(), "./src/screen.rs");
 
     container.reset();
     assert_eq!(container.current().unwrap().name(), "./src/banner");
 
     container.next();
-    assert_eq!(container.current().unwrap().name(), "./src/");
+    assert_eq!(container.current().unwrap().name(), "./src/screen.rs");
     container.prev();
     assert_eq!(container.current().unwrap().name(), "./src/banner");
 }
