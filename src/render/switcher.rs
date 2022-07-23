@@ -49,6 +49,10 @@ impl DocumentSwitcher {
         }
     }
 
+    pub fn message(&mut self, message: String) {
+        self.message_bar = MessageBar::from(message);
+    }
+
     /// check
     pub fn is_empty(&self) -> bool {
         self.empty

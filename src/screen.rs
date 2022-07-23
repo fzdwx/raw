@@ -22,7 +22,7 @@ pub struct Screen {
 impl Screen {}
 
 /// relative position of the current cursor
-#[derive(Copy, Clone, Default)]
+#[derive(Copy, Clone, Default, Debug)]
 pub struct Position {
     pub x: usize,
     pub y: usize,

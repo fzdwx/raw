@@ -50,6 +50,38 @@ pub struct AppCtx {
     // screen size
     pub screen_size: (u16, u16),
     pub doc_size: (usize, usize),
+    pub bottom_height: usize,
+}
+
+impl AppCtx {
+    /// 适配屏幕,获取光标最大可能存在的位置.
+    pub fn get_cursor(&self) -> Position {
+        Position {
+            // todo adapt y
+            x: self.offset.x,
+            y: self.adapt_y(),
+        }
+    }
+
+    /// cal offset y
+    pub fn cal_offset_y(&self) -> usize {
+        self.offset
+            .y
+            .saturating_sub((self.screen_size.1 as usize).saturating_sub(self.bottom_height))
+    }
+
+    /// get screen height.
+    pub fn get_screen_height(&self) -> usize {
+        self.screen_size.1 as usize
+    }
+
+    fn adapt_y(&self) -> usize {
+        let to_bottom = (self.screen_size.1 as usize).saturating_sub(self.bottom_height);
+        if self.offset.y > to_bottom {
+            return to_bottom;
+        }
+        self.offset.y
+    }
 }
 
 impl App {
@@ -127,11 +159,13 @@ impl App {
 
             return Ok(());
         }
-        screen::move_to(self.offset)?;
+
+        let position = ctx.get_cursor();
+        screen::move_to(position)?;
 
         self.doc_switcher.render(ctx, buf, buf.area);
 
-        self.screen.refresh_and_set_cursor(self.offset)
+        self.screen.refresh_and_set_cursor(position)
     }
 
     /// on key press
@@ -252,7 +286,10 @@ impl App {
 
         self.cursor = Position { x, y };
         // todo scroll
-        self.offset = Position { x: line.get_offset(x), y };
+        self.offset = Position {
+            x: line.get_offset(x),
+            y,
+        };
         self.cursor.scroll(self.offset, bottom_height);
     }
 
@@ -262,12 +299,14 @@ impl App {
 
     fn new_ctx(&self) -> AppCtx {
         let doc_size = self.doc_switcher.current_doc_size(self.cursor.y);
+        let bottom_height = self.doc_switcher.get_bottom_height();
 
         AppCtx {
             offset: self.offset,
             cursor: self.cursor,
             screen_size: screen::size().unwrap(),
             doc_size,
+            bottom_height,
         }
     }
 }

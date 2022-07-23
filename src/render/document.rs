@@ -33,21 +33,13 @@ impl Render for Document {
             return;
         }
 
-        let mut row = ctx.cursor.y;
-        // for screen_row in 0..area.height {
-        //     buf.set_string(
-        //         0,
-        //         screen_row,
-        //         self.line(screen_row as usize)
-        //             .to_string(),
-        //         Style::default(),
-        //     );
-            // row += 1;
-        // }
-        
-        
         let mut x = 0;
-        for line in self.content.lines().skip(ctx.cursor.y) {
+        for line in self
+            .content
+            .lines()
+            .skip(ctx.cal_offset_y())
+            .take(area.height as usize)
+        {
             if x >= area.height {
                 return;
             };
