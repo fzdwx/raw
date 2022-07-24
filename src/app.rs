@@ -1,3 +1,4 @@
+use std::detect::__is_feature_detected::xsave;
 use std::error;
 use std::error::Error;
 use std::ops::ControlFlow::Continue;
@@ -285,8 +286,8 @@ impl App {
         /// todo  offset.x 有问题
         if x < offset.x {
             offset.x = x;
-        } else if line.get_offset(x) >= offset.x.saturating_add(w) {
-            offset.x = line.get_offset(x).saturating_sub(w).saturating_add(1);
+        } else if line.get_offset(x) >= line.get_offset(offset.x).saturating_add(w) {
+            offset.x = offset.x.saturating_add(1);
         }
 
         self.offset = offset;
