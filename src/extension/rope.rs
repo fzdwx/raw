@@ -14,7 +14,7 @@ pub trait RopeSliceEx<'a> {
     fn len_word_boundary(&self) -> usize;
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Line {
     pub offset_mapping: Vec<usize>,
     pub str_list: Vec<String>,
@@ -34,6 +34,18 @@ impl Line {
                 0
             }
         }
+    }
+
+    pub fn render(&self, offset: usize) -> String {
+        if self.str_list.is_empty() {
+            return "".to_string();
+        }
+
+        let mut result = String::new();
+        for string in self.str_list.iter().skip(offset) {
+            result.push_str(string);
+        }
+        result
     }
 }
 

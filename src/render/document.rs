@@ -39,8 +39,14 @@ impl Render for Document {
                 return;
             };
 
+            // line.
             // todo 是不是太暴力了.
-            buf.set_string(0, x as u16, line.to_line().to_string(), Style::default());
+            buf.set_string(
+                0,
+                x as u16,
+                line.to_line().render(ctx.offset.x),
+                Style::default(),
+            );
         }
     }
 }

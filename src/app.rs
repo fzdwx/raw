@@ -11,7 +11,7 @@ use crate::event::{flush_resize_events, Event, EventHandler};
 use crate::extension::graphemes_ex::{
     next_grapheme_boundary, nth_prev_grapheme_boundary, prev_grapheme_boundary,
 };
-use crate::extension::rope::RopeSliceEx;
+use crate::extension::rope::{Line, RopeSliceEx};
 use crate::render::banner::Banner;
 use crate::render::document::Document;
 use crate::render::message::MessageBar;
@@ -35,14 +35,15 @@ pub struct App {
     banner: Banner,
     // document container.
     doc_switcher: DocumentSwitcher,
-    /// the offset on the (x,y)
+    /// cursor 的偏移量,即超出屏幕的部分
     offset: Position,
     ///   cursor position
     cursor: Position,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct AppCtx {
+    pub current_line: Line,
     // the offset on the (x,y)
     pub offset: Position,
     //   cursor position
@@ -57,30 +58,22 @@ impl AppCtx {
     /// 适配屏幕,获取光标最大可能存在的位置.
     pub fn get_cursor(&self) -> Position {
         Position {
-            // todo adapt y
-            x: self.offset.x,
-            y: self.adapt_y(),
+            x: self
+                .current_line
+                .get_offset(self.cursor.x.saturating_sub(self.offset.x)),
+            // x: self.cursor.x.saturating_sub(self.offset.x),
+            y: self.cursor.y.saturating_sub(self.offset.y),
         }
     }
 
     /// cal offset y
     pub fn cal_offset_y(&self) -> usize {
-        self.offset
-            .y
-            .saturating_sub((self.screen_size.1 as usize).saturating_sub(self.bottom_height))
+        self.offset.y
     }
 
     /// get screen height.
     pub fn get_screen_height(&self) -> usize {
         self.screen_size.1 as usize
-    }
-
-    fn adapt_y(&self) -> usize {
-        let to_bottom = (self.screen_size.1 as usize).saturating_sub(self.bottom_height);
-        if self.offset.y > to_bottom {
-            return to_bottom;
-        }
-        self.offset.y
     }
 }
 
@@ -208,6 +201,7 @@ impl App {
 
             _ => {}
         };
+        self.scroll();
     }
 
     /// on tick event
@@ -226,9 +220,7 @@ impl App {
         let doc_height = self.doc_switcher.current_doc_height();
         let doc_width = rope_slice.len_word_boundary();
         let row_width = rope_slice.len_chars();
-        let line = rope_slice.to_line();
 
-        /// todo 要获取下个字符的具体长度, 比如说如果是中文那么下一个就有可能不是直接+1
         match key_code {
             KeyCode::Left => {
                 if x > 0 {
@@ -249,19 +241,13 @@ impl App {
                 }
             }
             KeyCode::Up => {
-                // 支持在第一行向上移动时,跳到最后一行.
-                if y == 0 {
-                    y = doc_height;
-                } else {
-                    y = y.saturating_sub(1);
-                }
+                y = y.saturating_sub(1);
             }
             KeyCode::Down => {
                 if y < doc_height {
                     y = y.saturating_add(1);
                 }
             }
-            // todo 获取这一行的第一个不是空格的idx
             KeyCode::Home => x = 0,
             KeyCode::End => x = doc_width,
             KeyCode::PageUp => {}
@@ -280,10 +266,30 @@ impl App {
         }
 
         self.cursor = Position { x, y };
-        self.offset = Position {
-            x: line.get_offset(x),
-            y,
+    }
+
+    fn scroll(&mut self) {
+        let Position { x, y } = self.cursor;
+        let screen_size = screen::size().unwrap();
+        let h = (screen_size.1 as usize) - self.doc_switcher.get_bottom_height();
+        let w = screen_size.0 as usize;
+        let line = self.doc_switcher.current_doc_row_to_line(y);
+
+        let mut offset = self.offset;
+        if y < offset.y {
+            offset.y = y
+        } else if y >= offset.y.saturating_add(h) {
+            offset.y = y.saturating_sub(h).saturating_add(1);
         };
+
+        /// todo  offset.x 有问题
+        if x < offset.x {
+            offset.x = x;
+        } else if line.get_offset(x) >= offset.x.saturating_add(w) {
+            offset.x = line.get_offset(x).saturating_sub(w).saturating_add(1);
+        }
+
+        self.offset = offset;
     }
 
     fn exit(&self) -> AppResult<()> {
@@ -295,6 +301,7 @@ impl App {
         let bottom_height = self.doc_switcher.get_bottom_height();
 
         AppCtx {
+            current_line: self.doc_switcher.current_doc_row_to_line(self.cursor.y),
             offset: self.offset,
             cursor: self.cursor,
             screen_size: screen::size().unwrap(),

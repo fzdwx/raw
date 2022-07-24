@@ -27,14 +27,18 @@ impl Render for DocumentSwitcher {
     fn render(&mut self, ctx: AppCtx, buf: &mut Buffer, area: Rect) {
         let should_render_message_bar = self.message_bar.should_render();
 
-        self.current_mut()
-            .unwrap()
-            .render(ctx, buf, area.to_document(should_render_message_bar));
+        self.current_mut().unwrap().render(
+            ctx.clone(),
+            buf,
+            area.to_document(should_render_message_bar),
+        );
 
         let current = self.current().unwrap();
         self.status_line.refresh(current.name(), current.filetype());
-        self.status_line.render(ctx, buf, area.to_status_line());
-        self.message_bar.render(ctx, buf, area.to_message_bar());
+        self.status_line
+            .render(ctx.clone(), buf, area.to_status_line());
+        self.message_bar
+            .render(ctx.clone(), buf, area.to_message_bar());
     }
 }
 
@@ -60,9 +64,9 @@ impl DocumentSwitcher {
 
     /// a
     pub fn get_bottom_height(&self) -> usize {
-        // 索引从0开始   +1
+        // 索引从0开始   +1 ? todo 这个需要吗？
         // status_line +1
-        let mut bottom_height: usize = 2; //
+        let mut bottom_height: usize = 1; //
 
         if self.message_bar.should_render() {
             // should render message +1
